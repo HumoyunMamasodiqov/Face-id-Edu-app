@@ -1,0 +1,448 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Sarlavha -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="mb-0">
+            <i class="fas fa-user-edit me-2"></i>
+            {{ title }}
+        </h2>
+        <a href="{% url 'user_list' %}" class="btn btn-outline-secondary">
+            <i class="fas fa-arrow-left me-1"></i> Orqaga
+        </a>
+    </div>
+    
+    <!-- Forma -->
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card shadow-sm">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0">
+                        <i class="fas fa-user-circle me-2"></i>
+                        Foydalanuvchi ma'lumotlari
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <!-- Xato xabarlari -->
+                    {% if form.errors %}
+                    <div class="alert alert-danger alert-dismissible fade show">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        <strong>Xatolik!</strong> Quyidagi xatolarni tuzating:
+                        <ul class="mt-2 mb-0">
+                            {% for field in form %}
+                                {% for error in field.errors %}
+                                    <li><strong>{{ field.label }}:</strong> {{ error }}</li>
+                                {% endfor %}
+                            {% endfor %}
+                            {% for error in form.non_field_errors %}
+                                <li>{{ error }}</li>
+                            {% endfor %}
+                        </ul>
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                    {% endif %}
+                    
+                    <form method="post" id="userForm">
+                        {% csrf_token %}
+                        
+                        <!-- Asosiy ma'lumotlar -->
+                        <div class="mb-4">
+                            <h5 class="border-bottom pb-2 mb-3">
+                                <i class="fas fa-id-card text-primary me-2"></i>
+                                Asosiy ma'lumotlar
+                            </h5>
+                            
+                            <div class="row g-3">
+                                <!-- Login -->
+                                <div class="col-md-6">
+                                    <label for="{{ form.username.id_for_label }}" class="form-label">
+                                        <i class="fas fa-user text-muted me-1"></i>
+                                        Login *
+                                    </label>
+                                    {{ form.username }}
+                                    {% if form.username.help_text %}
+                                    <small class="form-text text-muted">{{ form.username.help_text }}</small>
+                                    {% endif %}
+                                </div>
+                                
+                                <!-- Email -->
+                                <div class="col-md-6">
+                                    <label for="{{ form.email.id_for_label }}" class="form-label">
+                                        <i class="fas fa-envelope text-muted me-1"></i>
+                                        Email
+                                    </label>
+                                    {{ form.email }}
+                                </div>
+                                
+                                <!-- Ism -->
+                                <div class="col-md-6">
+                                    <label for="{{ form.first_name.id_for_label }}" class="form-label">
+                                        <i class="fas fa-user text-muted me-1"></i>
+                                        Ism
+                                    </label>
+                                    {{ form.first_name }}
+                                </div>
+                                
+                                <!-- Familiya -->
+                                <div class="col-md-6">
+                                    <label for="{{ form.last_name.id_for_label }}" class="form-label">
+                                        <i class="fas fa-user text-muted me-1"></i>
+                                        Familiya
+                                    </label>
+                                    {{ form.last_name }}
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Parol (faqat yangi foydalanuvchi qo'shishda) -->
+                        {% if action == 'add' %}
+                        <div class="mb-4">
+                            <h5 class="border-bottom pb-2 mb-3">
+                                <i class="fas fa-lock text-warning me-2"></i>
+                                Parol ma'lumotlari
+                            </h5>
+                            
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label for="{{ form.password1.id_for_label }}" class="form-label">
+                                        <i class="fas fa-key text-muted me-1"></i>
+                                        Parol *
+                                    </label>
+                                    {{ form.password1 }}
+                                    <div class="mt-2">
+                                        <small class="text-muted">
+                                            <i class="fas fa-info-circle me-1"></i>
+                                            Parol kamida 8 belgidan iborat bo'lishi kerak
+                                        </small>
+                                    </div>
+                                </div>
+                                
+                                <div class="col-md-6">
+                                    <label for="{{ form.password2.id_for_label }}" class="form-label">
+                                        <i class="fas fa-key text-muted me-1"></i>
+                                        Parolni tasdiqlash *
+                                    </label>
+                                    {{ form.password2 }}
+                                    <div class="mt-2">
+                                        <small class="text-muted">
+                                            <i class="fas fa-info-circle me-1"></i>
+                                            Yuqoridagi parolni qayta kiriting
+                                        </small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endif %}
+                        
+                        <!-- Qo'shimcha ma'lumotlar -->
+                        <div class="mb-4">
+                            <h5 class="border-bottom pb-2 mb-3">
+                                <i class="fas fa-cogs text-info me-2"></i>
+                                Qo'shimcha ma'lumotlar
+                            </h5>
+                            
+                            <div class="row g-3">
+                                <!-- Foydalanuvchi turi -->
+                                <div class="col-md-6">
+                                    <label for="{{ form.user_type.id_for_label }}" class="form-label">
+                                        <i class="fas fa-user-tag text-muted me-1"></i>
+                                        Foydalanuvchi turi
+                                    </label>
+                                    {{ form.user_type }}
+                                </div>
+                                
+                                <!-- Xodim bilan bog'lash -->
+                                <div class="col-md-6">
+                                    <label for="{{ form.employee.id_for_label }}" class="form-label">
+                                        <i class="fas fa-user-tie text-muted me-1"></i>
+                                        Xodim bilan bog'lash
+                                    </label>
+                                    {{ form.employee }}
+                                    <small class="form-text text-muted">
+                                        Agar xodim bilan bog'lash kerak bo'lsa
+                                    </small>
+                                </div>
+                                
+                                <!-- Telefon -->
+                                <div class="col-md-6">
+                                    <label for="{{ form.phone.id_for_label }}" class="form-label">
+                                        <i class="fas fa-phone text-muted me-1"></i>
+                                        Telefon raqam
+                                    </label>
+                                    {{ form.phone }}
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Sozlamalar -->
+                        <div class="mb-4">
+                            <h5 class="border-bottom pb-2 mb-3">
+                                <i class="fas fa-sliders-h text-success me-2"></i>
+                                Sozlamalar
+                            </h5>
+                            
+                            <div class="row g-3">
+                                <!-- Faollik -->
+                                <div class="col-md-6">
+                                    <div class="form-check form-switch">
+                                        {{ form.is_active }}
+                                        <label class="form-check-label" for="{{ form.is_active.id_for_label }}">
+                                            <i class="fas fa-toggle-on me-1"></i>
+                                            Foydalanuvchi faol
+                                        </label>
+                                    </div>
+                                    <small class="form-text text-muted">
+                                        Agar oʻchirilsa, foydalanuvchi tizimga kira olmaydi
+                                    </small>
+                                </div>
+                                
+                                <!-- Admin huquqi -->
+                                <div class="col-md-6">
+                                    <div class="form-check form-switch">
+                                        {{ form.is_staff }}
+                                        <label class="form-check-label" for="{{ form.is_staff.id_for_label }}">
+                                            <i class="fas fa-user-shield me-1"></i>
+                                            Admin huquqi
+                                        </label>
+                                    </div>
+                                    <small class="form-text text-muted">
+                                        Admin panelga kirish huquqi
+                                    </small>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Amallar -->
+                        <div class="border-top pt-4 mt-4">
+                            <div class="d-flex justify-content-between">
+                                <div>
+                                    <button type="submit" class="btn btn-primary">
+                                        <i class="fas fa-save me-1"></i> Saqlash
+                                    </button>
+                                    <button type="reset" class="btn btn-secondary">
+                                        <i class="fas fa-undo me-1"></i> Tozalash
+                                    </button>
+                                </div>
+                                <a href="{% url 'user_list' %}" class="btn btn-outline-danger">
+                                    <i class="fas fa-times me-1"></i> Bekor qilish
+                                </a>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    /* Form maydonlarini yaxshilash */
+    input[type="text"],
+    input[type="password"],
+    input[type="email"],
+    select {
+        width: 100%;
+        padding: 10px 15px;
+        border: 1px solid #dee2e6;
+        border-radius: 8px;
+        font-size: 14px;
+        transition: all 0.3s;
+    }
+    
+    input:focus,
+    select:focus {
+        border-color: #86b7fe;
+        box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+        outline: none;
+    }
+    
+    .form-check-input:checked {
+        background-color: #0d6efd;
+        border-color: #0d6efd;
+    }
+    
+    .form-check-input:focus {
+        box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+    }
+    
+    .form-check-input {
+        width: 3em;
+        height: 1.5em;
+        margin-right: 10px;
+    }
+    
+    .form-label {
+        font-weight: 500;
+        margin-bottom: 8px;
+        color: #495057;
+    }
+    
+    .card {
+        border: 1px solid #e9ecef;
+        border-radius: 10px;
+    }
+    
+    .card-header {
+        background-color: #f8f9fa;
+        border-bottom: 1px solid #e9ecef;
+        border-radius: 10px 10px 0 0 !important;
+    }
+    
+    .btn {
+        padding: 8px 20px;
+        font-weight: 500;
+        border-radius: 8px;
+    }
+    
+    .btn-primary {
+        background-color: #0d6efd;
+        border-color: #0d6efd;
+    }
+    
+    .btn-primary:hover {
+        background-color: #0b5ed7;
+        border-color: #0a58ca;
+    }
+    
+    .border-bottom {
+        border-bottom: 2px solid #dee2e6 !important;
+    }
+    
+    @media (max-width: 768px) {
+        .container-fluid {
+            padding: 15px;
+        }
+        
+        .btn {
+            width: 100%;
+            margin-bottom: 10px;
+        }
+        
+        .d-flex.justify-content-between {
+            flex-direction: column;
+            gap: 10px;
+        }
+        
+        .d-flex.justify-content-between .btn {
+            width: auto;
+        }
+    }
+</style>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Formani yuborish
+        const form = document.getElementById('userForm');
+        if (form) {
+            form.addEventListener('submit', function(e) {
+                // Validatsiya
+                const username = document.querySelector('[name="username"]').value.trim();
+                if (!username) {
+                    e.preventDefault();
+                    alert('Iltimos, login kiriting!');
+                    return false;
+                }
+                
+                // Agar yangi foydalanuvchi bo'lsa, parolni tekshirish
+                if ('{{ action }}' === 'add') {
+                    const password1 = document.querySelector('[name="password1"]').value;
+                    const password2 = document.querySelector('[name="password2"]').value;
+                    
+                    if (password1.length < 8) {
+                        e.preventDefault();
+                        alert('Parol kamida 8 belgidan iborat bo\'lishi kerak!');
+                        return false;
+                    }
+                    
+                    if (password1 !== password2) {
+                        e.preventDefault();
+                        alert('Parollar bir xil emas!');
+                        return false;
+                    }
+                }
+                
+                // Yuborishdan oldin yuklash animatsiyasi
+                const submitBtn = form.querySelector('button[type="submit"]');
+                if (submitBtn) {
+                    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i> Saqlanmoqda...';
+                    submitBtn.disabled = true;
+                }
+                
+                return true;
+            });
+        }
+        
+        // Parol kuchini ko'rsatish
+        const password1Input = document.querySelector('[name="password1"]');
+        if (password1Input) {
+            password1Input.addEventListener('input', function() {
+                const password = this.value;
+                const strengthDiv = document.createElement('div');
+                strengthDiv.className = 'password-strength mt-1';
+                
+                // Eski strength divni o'chirish
+                const oldStrength = document.querySelector('.password-strength');
+                if (oldStrength) oldStrength.remove();
+                
+                // Yangi strength divni qo'shish
+                this.parentNode.appendChild(strengthDiv);
+                
+                let strength = 0;
+                let text = '';
+                let color = '';
+                
+                if (password.length >= 8) strength++;
+                if (/[A-Z]/.test(password)) strength++;
+                if (/[a-z]/.test(password)) strength++;
+                if (/[0-9]/.test(password)) strength++;
+                if (/[^A-Za-z0-9]/.test(password)) strength++;
+                
+                switch(strength) {
+                    case 0:
+                    case 1:
+                        text = 'Judah kuchsiz';
+                        color = 'danger';
+                        break;
+                    case 2:
+                        text = 'Kuchsiz';
+                        color = 'warning';
+                        break;
+                    case 3:
+                        text = 'Oʻrtacha';
+                        color = 'info';
+                        break;
+                    case 4:
+                        text = 'Kuchli';
+                        color = 'success';
+                        break;
+                    case 5:
+                        text = 'Judah kuchli';
+                        color = 'success';
+                        break;
+                }
+                
+                strengthDiv.innerHTML = `
+                    <small class="text-${color}">
+                        <i class="fas fa-shield-alt me-1"></i>
+                        Parol kuchi: ${text}
+                    </small>
+                `;
+            });
+        }
+        
+        // Parolni ko'rsatish/yashirish
+        const togglePasswordBtns = document.querySelectorAll('.toggle-password');
+        togglePasswordBtns.forEach(btn => {
+            btn.addEventListener('click', function() {
+                const input = this.previousElementSibling;
+                const type = input.getAttribute('type') === 'password' ? 'text' : 'password';
+                input.setAttribute('type', type);
+                this.classList.toggle('fa-eye');
+                this.classList.toggle('fa-eye-slash');
+            });
+        });
+    });
+</script>
+{% endblock %}

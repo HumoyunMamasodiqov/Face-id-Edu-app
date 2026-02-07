@@ -1,0 +1,508 @@
+<!DOCTYPE html>
+<html lang="uz">
+    {% load static %}
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ page_title }} - Face Recognition</title>
+    <link rel="manifest" href="{% static 'manifest.json' %}">
+<meta name="theme-color" content="#0d6efd">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        body {
+            background: #f8f9fa;
+            padding: 20px;
+        }
+        .schedule-container {
+            margin-top: 20px;
+        }
+        .day-schedule {
+            background: white;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 15px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            border-left: 4px solid #667eea;
+        }
+        .day-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        .time-inputs {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
+        .time-input-group {
+            flex: 1;
+        }
+        .day-checkbox {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px;
+            border-radius: 8px;
+            background: #f8f9fa;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .day-checkbox:hover {
+            background: #e9ecef;
+        }
+        .day-checkbox.selected {
+            background: #667eea;
+            color: white;
+        }
+        .day-checkbox input[type="checkbox"] {
+            display: none;
+        }
+        .schedule-details {
+            display: none;
+            margin-top: 10px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 8px;
+        }
+        .schedule-details.show {
+            display: block;
+        }
+        .work-hours-info {
+            font-size: 12px;
+            color: #6c757d;
+            margin-top: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Navigation -->
+        <div class="row mb-4">
+            <div class="col-md-8">
+                <h1><i class="fas fa-user-plus me-2"></i>Yangi Xodim Qo'shish</h1>
+                <p class="text-muted">Xodim ma'lumotlarini to'ldiring va ish jadvalini belgilang</p>
+            </div>
+            <div class="col-md-4 text-end">
+                <a href="{% url 'employee_list' %}" class="btn btn-outline-secondary">
+                    <i class="fas fa-arrow-left me-1"></i> Orqaga
+                </a>
+            </div>
+        </div>
+
+        <form method="POST" enctype="multipart/form-data" id="employeeForm">
+            {% csrf_token %}
+            
+            <div class="row">
+                <!-- Left Column - Basic Info -->
+                <div class="col-md-6">
+                    <div class="card mb-4">
+                        <div class="card-header bg-primary text-white">
+                            <h5 class="mb-0"><i class="fas fa-user me-2"></i>Asosiy Ma'lumotlar</h5>
+                        </div>
+                        <div class="card-body">
+                            <!-- Ism va Familya -->
+                            <div class="row mb-3">
+                                <div class="col-md-6">
+                                    <label class="form-label required">Ism</label>
+                                    <input type="text" name="first_name" class="form-control" required>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label required">Familya</label>
+                                    <input type="text" name="last_name" class="form-control" required>
+                                </div>
+                            </div>
+
+                            <!-- Lavozim va Bo'lim -->
+                            <div class="row mb-3">
+                                <div class="col-md-6">
+                                    <label class="form-label required">Lavozim</label>
+                                    <input type="text" name="position" class="form-control" required>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label required">Bo'lim</label>
+                                    <input type="text" name="department" class="form-control" required>
+                                </div>
+                            </div>
+
+                            <!-- Aloqa -->
+                            <div class="row mb-3">
+                                <div class="col-md-6">
+                                    <label class="form-label">Telefon</label>
+                                    <input type="tel" name="phone" class="form-control">
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">Email</label>
+                                    <input type="email" name="email" class="form-control">
+                                </div>
+                            </div>
+
+                            <!-- Rasm -->
+                            <div class="mb-3">
+                                <label class="form-label required">Rasm (Face Recognition uchun)</label>
+                                <input type="file" name="photo" class="form-control" accept="image/*" required>
+                                <small class="text-muted">Yuz aniq ko'rinadigan yaxshi sifatli rasm yuklang</small>
+                            </div>
+
+                            <!-- Status -->
+                            <div class="mb-3">
+                                <div class="form-check">
+                                    <input type="checkbox" name="is_active" class="form-check-input" checked>
+                                    <label class="form-check-label">Faol xodim</label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Salary Information -->
+                    <div class="card mb-4">
+                        <div class="card-header bg-success text-white">
+                            <h5 class="mb-0"><i class="fas fa-money-bill-wave me-2"></i>Maosh va Jarimalar</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row mb-3">
+                                <div class="col-md-12">
+                                    <label class="form-label required">Oylik maosh (so'm)</label>
+                                    <input type="number" name="monthly_salary" class="form-control" required min="0" step="10000">
+                                </div>
+                            </div>
+                            <div class="row mb-3">
+                                <div class="col-md-6">
+                                    <label class="form-label required">Kechikish jarimasi (so'm/daqika)</label>
+                                    <input type="number" name="late_penalty_per_minute" class="form-control" value="1000" required min="0">
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label required">Ruxsat etilgan kechikish (daqiqa)</label>
+                                    <input type="number" name="allowed_late_minutes" class="form-control" value="10" required min="0">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right Column - Work Schedule -->
+                <div class="col-md-6">
+                    <div class="card mb-4">
+                        <div class="card-header bg-info text-white">
+                            <h5 class="mb-0"><i class="fas fa-calendar-alt me-2"></i>Ish Jadvali</h5>
+                        </div>
+                        <div class="card-body">
+                            <p class="text-muted mb-4">Xodim qaysi kunlari ishlashini va har bir kun uchun kelish vaqtini belgilang</p>
+                            
+                            <!-- Ish kunlari tanlash -->
+                            <div class="mb-4">
+                                <h6>Ish kunlarini tanlang:</h6>
+                                <div class="row" id="daySelection">
+                                    {% for day in days %}
+                                    <div class="col-6 col-md-4 mb-2">
+                                        <label class="day-checkbox" data-day="{{ day.code }}">
+                                            <i class="fas fa-square"></i>
+                                            <span class="day-name">{{ day.name }}</span>
+                                            <input type="checkbox" name="work_days" value="{{ day.code }}">
+                                        </label>
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+
+                            <!-- Har bir kun uchun vaqt -->
+                            <div id="scheduleContainer">
+                                <!-- Har bir kun uchun vaqt belgilash maydonlari -->
+                                {% for day in days %}
+                                <div class="day-schedule" id="schedule-{{ day.code }}" style="display: none;">
+                                    <div class="day-header">
+                                        <h6 class="mb-0">{{ day.name }} kuni ish vaqti</h6>
+                                        <button type="button" class="btn btn-sm btn-outline-secondary toggle-details" data-day="{{ day.code }}">
+                                            <i class="fas fa-chevron-down"></i>
+                                        </button>
+                                    </div>
+                                    <div class="schedule-details" id="details-{{ day.code }}">
+                                        <div class="time-inputs">
+                                            <div class="time-input-group">
+                                                <label class="form-label">Kelish vaqti</label>
+                                                <input type="time" name="start_time_{{ day.code }}" 
+                                                       class="form-control start-time" 
+                                                       data-day="{{ day.code }}"
+                                                       value="09:00">
+                                            </div>
+                                            <div class="time-input-group">
+                                                <label class="form-label">Chiqish vaqti</label>
+                                                <input type="time" name="end_time_{{ day.code }}" 
+                                                       class="form-control end-time" 
+                                                       data-day="{{ day.code }}"
+                                                       value="18:00">
+                                            </div>
+                                        </div>
+                                        <div class="work-hours-info">
+                                            <span id="hours-{{ day.code }}">8 soat</span> ish
+                                            <span class="text-muted ms-2">(Tushlik 1 soat)</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+
+                            <!-- Umumiy ish vaqti -->
+                            <div class="card mt-4">
+                                <div class="card-body">
+                                    <h6>Umumiy ish vaqti:</h6>
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <p>Tanlangan kunlar: <span id="selectedDaysCount">0</span></p>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <p>Haftalik ish soati: <span id="weeklyWorkHours">0</span> soat</p>
+                                        </div>
+                                    </div>
+                                    <div class="progress mb-2">
+                                        <div class="progress-bar bg-success" id="workProgress" style="width: 0%"></div>
+                                    </div>
+                                    <small class="text-muted">Maksimal 40 soat/hafta (5 kun × 8 soat)</small>
+                                </div>
+                            </div>
+
+                            <!-- Default time for all days -->
+                            <div class="mt-4">
+                                <h6>Barcha tanlangan kunlar uchun bir xil vaqt:</h6>
+                                <div class="row g-2 mb-3">
+                                    <div class="col-md-5">
+                                        <input type="time" id="defaultStart" class="form-control" value="09:00">
+                                    </div>
+                                    <div class="col-md-5">
+                                        <input type="time" id="defaultEnd" class="form-control" value="18:00">
+                                    </div>
+                                    <div class="col-md-2">
+                                        <button type="button" class="btn btn-primary w-100" onclick="applyToAll()">
+                                            <i class="fas fa-check"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                                <small class="text-muted">Bu vaqt barcha tanlangan kunlarga qo'llaniladi</small>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Save Button -->
+                    <div class="card">
+                        <div class="card-body text-center">
+                            <button type="submit" class="btn btn-primary btn-lg w-100">
+                                <i class="fas fa-save me-2"></i>Xodimni Saqlash
+                            </button>
+                            <p class="text-muted mt-2 small">
+                                <i class="fas fa-info-circle me-1"></i>
+                                Xodim saqlangandan so'ng, ular face recognition orqali kelish/chiqish qilishlari mumkin
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <!-- Days data -->
+    <script>
+        const days = [
+            { code: 'monday', name: 'Dushanba' },
+            { code: 'tuesday', name: 'Seshanba' },
+            { code: 'wednesday', name: 'Chorshanba' },
+            { code: 'thursday', name: 'Payshanba' },
+            { code: 'friday', name: 'Juma' },
+            { code: 'saturday', name: 'Shanba' },
+            { code: 'sunday', name: 'Yakshanba' }
+        ];
+    </script>
+
+    <script>
+        // Day checkbox selection
+        document.querySelectorAll('.day-checkbox').forEach(checkbox => {
+            checkbox.addEventListener('click', function() {
+                const day = this.dataset.day;
+                const input = this.querySelector('input[type="checkbox"]');
+                
+                this.classList.toggle('selected');
+                input.checked = !input.checked;
+                
+                // Update icon
+                const icon = this.querySelector('i');
+                if (input.checked) {
+                    icon.className = 'fas fa-check-square';
+                } else {
+                    icon.className = 'fas fa-square';
+                }
+                
+                // Show/hide schedule for this day
+                const scheduleDiv = document.getElementById(`schedule-${day}`);
+                if (input.checked) {
+                    scheduleDiv.style.display = 'block';
+                } else {
+                    scheduleDiv.style.display = 'none';
+                    // Hide details if shown
+                    const detailsDiv = document.getElementById(`details-${day}`);
+                    detailsDiv.classList.remove('show');
+                }
+                
+                updateStats();
+            });
+        });
+
+        // Toggle schedule details
+        document.querySelectorAll('.toggle-details').forEach(button => {
+            button.addEventListener('click', function() {
+                const day = this.dataset.day;
+                const detailsDiv = document.getElementById(`details-${day}`);
+                const icon = this.querySelector('i');
+                
+                detailsDiv.classList.toggle('show');
+                if (detailsDiv.classList.contains('show')) {
+                    icon.className = 'fas fa-chevron-up';
+                } else {
+                    icon.className = 'fas fa-chevron-down';
+                }
+            });
+        });
+
+        // Calculate work hours
+        document.querySelectorAll('.start-time, .end-time').forEach(input => {
+            input.addEventListener('change', function() {
+                const day = this.dataset.day;
+                calculateWorkHours(day);
+                updateStats();
+            });
+        });
+
+        function calculateWorkHours(day) {
+            const startInput = document.querySelector(`input[name="start_time_${day}"]`);
+            const endInput = document.querySelector(`input[name="end_time_${day}"]`);
+            const hoursSpan = document.getElementById(`hours-${day}`);
+            
+            if (startInput.value && endInput.value) {
+                const start = new Date(`2000-01-01T${startInput.value}`);
+                const end = new Date(`2000-01-01T${endInput.value}`);
+                
+                // Tushlik vaqtini chiqarib tashlash (1 soat)
+                let diffHours = (end - start) / (1000 * 60 * 60) - 1;
+                
+                if (diffHours < 0) {
+                    diffHours = 0;
+                }
+                
+                hoursSpan.textContent = diffHours.toFixed(1) + ' soat';
+            }
+        }
+
+        // Apply default time to all selected days
+        function applyToAll() {
+            const defaultStart = document.getElementById('defaultStart').value;
+            const defaultEnd = document.getElementById('defaultEnd').value;
+            
+            document.querySelectorAll('.day-checkbox.selected').forEach(checkbox => {
+                const day = checkbox.dataset.day;
+                const startInput = document.querySelector(`input[name="start_time_${day}"]`);
+                const endInput = document.querySelector(`input[name="end_time_${day}"]`);
+                
+                if (startInput) {
+                    startInput.value = defaultStart;
+                }
+                if (endInput) {
+                    endInput.value = defaultEnd;
+                }
+                
+                calculateWorkHours(day);
+            });
+            
+            updateStats();
+        }
+
+        // Update statistics
+        function updateStats() {
+            const selectedDays = document.querySelectorAll('.day-checkbox.selected').length;
+            const selectedDaysCount = document.getElementById('selectedDaysCount');
+            const workProgress = document.getElementById('workProgress');
+            
+            selectedDaysCount.textContent = selectedDays;
+            
+            // Calculate total weekly hours
+            let totalHours = 0;
+            document.querySelectorAll('.day-checkbox.selected').forEach(checkbox => {
+                const day = checkbox.dataset.day;
+                const hoursSpan = document.getElementById(`hours-${day}`);
+                if (hoursSpan) {
+                    const hoursText = hoursSpan.textContent;
+                    const hours = parseFloat(hoursText);
+                    if (!isNaN(hours)) {
+                        totalHours += hours;
+                    }
+                }
+            });
+            
+            const weeklyWorkHours = document.getElementById('weeklyWorkHours');
+            weeklyWorkHours.textContent = totalHours.toFixed(1);
+            
+            // Update progress bar (40 hours = 100%)
+            const progress = Math.min(100, (totalHours / 40) * 100);
+            workProgress.style.width = progress + '%';
+        }
+
+        // Form validation
+        document.getElementById('employeeForm').addEventListener('submit', function(e) {
+            // Check if at least one day is selected
+            const selectedDays = document.querySelectorAll('input[name="work_days"]:checked').length;
+            if (selectedDays === 0) {
+                e.preventDefault();
+                alert('Iltimos, kamida bitta ish kunini tanlang!');
+                return false;
+            }
+            
+            // Check salary
+            const salary = document.querySelector('input[name="monthly_salary"]').value;
+            if (!salary || salary <= 0) {
+                e.preventDefault();
+                alert('Iltimos, to\'g\'ri oylik maosh kiriting!');
+                return false;
+            }
+            
+            // Validate work times for selected days
+            let hasTimeError = false;
+            document.querySelectorAll('.day-checkbox.selected').forEach(checkbox => {
+                const day = checkbox.dataset.day;
+                const startTime = document.querySelector(`input[name="start_time_${day}"]`).value;
+                const endTime = document.querySelector(`input[name="end_time_${day}"]`).value;
+                
+                if (startTime >= endTime) {
+                    hasTimeError = true;
+                    alert(`${checkbox.querySelector('.day-name').textContent} uchun ish boshlash vaqti tugash vaqtidan oldin bo'lishi kerak!`);
+                }
+            });
+            
+            if (hasTimeError) {
+                e.preventDefault();
+                return false;
+            }
+            
+            return true;
+        });
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            // Set default times for all days
+            days.forEach(day => {
+                calculateWorkHours(day.code);
+            });
+            updateStats();
+        });
+    </script>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        if ('serviceWorker' in navigator) {
+          navigator.serviceWorker.register("{% static 'service-worker.js' %}");
+        }
+        </script>
+        
+
+
+</body>
+</html>

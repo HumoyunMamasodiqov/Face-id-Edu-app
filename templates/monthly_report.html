@@ -1,0 +1,1396 @@
+<!DOCTYPE html>
+<html lang="uz">
+    {% load static %}
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
+    <title>Oylik Davomat Hisoboti</title>
+    <link rel="manifest" href="{% static 'manifest.json' %}">
+<meta name="theme-color" content="#0d6efd">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        /* Asosiy yashil ranglar */
+        :root {
+            --yashil-koyok: #1B5E20;
+            --yashil-asosiy: #2E7D32;
+            --yashil-yorqin: #4CAF50;
+            --yashil-ochiq: #66BB6A;
+            --yashil-juda-ochiq: #81C784;
+            --yashil-boz: #C8E6C9;
+            --yashil-yengil: #E8F5E9;
+        }
+
+        body {
+            background: linear-gradient(135deg, #E8F5E9 0%, #F9FDF9 100%);
+            color: #000000;
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            min-height: 100vh;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        /* Mobile uchun optimizatsiya */
+        @media (max-width: 576px) {
+            body {
+                font-size: 14px;
+            }
+        }
+
+        /* Header - yashil gradient */
+        .header-section {
+            background: linear-gradient(135deg, #1B5E20 0%, #2E7D32 100%);
+            border-radius: 16px;
+            padding: 25px 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 8px 25px rgba(27, 94, 32, 0.15);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .header-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 200px;
+            height: 200px;
+            background: linear-gradient(135deg, rgba(255,255,255,0.1) 0%, transparent 100%);
+            border-radius: 50%;
+            transform: translate(100px, -100px);
+        }
+
+        /* Statistik kartalar - mobile uchun optimallashtirildi */
+        .stat-card {
+            border-radius: 14px;
+            padding: 16px 12px;
+            color: white;
+            margin-bottom: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+            transition: all 0.3s ease;
+            min-height: 100px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.12);
+        }
+
+        @media (max-width: 768px) {
+            .stat-card {
+                padding: 14px 10px;
+                min-height: 90px;
+            }
+        }
+
+        .stat-employees { 
+            background: linear-gradient(135deg, #1B5E20 0%, #2E7D32 100%);
+            border-left: 4px solid #4CAF50;
+        }
+        .stat-present { 
+            background: linear-gradient(135deg, #2E7D32 0%, #4CAF50 100%);
+            border-left: 4px solid #66BB6A;
+        }
+        .stat-late { 
+            background: linear-gradient(135deg, #FFB300 0%, #FF9800 100%);
+            border-left: 4px solid #FFC107;
+        }
+        .stat-absent { 
+            background: linear-gradient(135deg, #D32F2F 0%, #F44336 100%);
+            border-left: 4px solid #EF5350;
+        }
+
+        /* Davomat darajasi ranglari - mobile uchun */
+        .attendance-rate {
+            font-size: 0.95rem;
+            font-weight: 600;
+            padding: 4px 10px;
+            border-radius: 20px;
+            display: inline-block;
+            min-width: 60px;
+            text-align: center;
+        }
+
+        @media (max-width: 768px) {
+            .attendance-rate {
+                font-size: 0.85rem;
+                padding: 3px 8px;
+                min-width: 55px;
+            }
+        }
+
+        .rate-excellent { 
+            background: linear-gradient(135deg, #E8F5E9 0%, #C8E6C9 100%);
+            color: #1B5E20;
+            border: 2px solid #4CAF50;
+        }
+        .rate-good { 
+            background: linear-gradient(135deg, #E3F2FD 0%, #BBDEFB 100%);
+            color: #1565C0;
+            border: 2px solid #2196F3;
+        }
+        .rate-average { 
+            background: linear-gradient(135deg, #FFF3E0 0%, #FFE0B2 100%);
+            color: #E65100;
+            border: 2px solid #FFB300;
+        }
+        .rate-poor { 
+            background: linear-gradient(135deg, #FFEBEE 0%, #FFCDD2 100%);
+            color: #C62828;
+            border: 2px solid #F44336;
+        }
+
+        /* Progress bar - mobile uchun */
+        .progress-thin { 
+            height: 8px; 
+            border-radius: 4px;
+            background: #E8F5E9;
+        }
+
+        @media (max-width: 768px) {
+            .progress-thin { 
+                height: 6px; 
+            }
+        }
+
+        /* Xodim kartalari - mobile optimallashuvi */
+        .employee-card {
+            border-radius: 16px;
+            transition: all 0.3s ease;
+            border: 2px solid #E8F5E9;
+            box-shadow: 0 4px 15px rgba(46, 125, 50, 0.08);
+            margin-bottom: 20px;
+            background: white;
+            overflow: hidden;
+        }
+
+        @media (hover: hover) {
+            .employee-card:hover {
+                transform: translateY(-5px);
+                box-shadow: 0 8px 25px rgba(46, 125, 50, 0.15);
+                border-color: #4CAF50;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .employee-card {
+                border-radius: 12px;
+                margin-bottom: 15px;
+            }
+        }
+
+        .employee-photo {
+            width: 60px;
+            height: 60px;
+            object-fit: cover;
+            border: 3px solid #4CAF50;
+            background: #E8F5E9;
+        }
+
+        @media (max-width: 768px) {
+            .employee-photo {
+                width: 50px;
+                height: 50px;
+                border-width: 2px;
+            }
+        }
+
+        @media (max-width: 576px) {
+            .employee-photo {
+                width: 45px;
+                height: 45px;
+            }
+        }
+
+        /* Statistik raqamlar */
+        .stat-number {
+            font-size: 1.4rem;
+            font-weight: 700;
+            display: block;
+            line-height: 1;
+        }
+
+        @media (max-width: 768px) {
+            .stat-number {
+                font-size: 1.2rem;
+            }
+        }
+
+        /* Tugmalar - mobile optimallashuvi */
+        .btn-yashil {
+            background: linear-gradient(135deg, #2E7D32 0%, #4CAF50 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            padding: 10px 20px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            text-decoration: none;
+            font-size: 0.95rem;
+        }
+
+        .btn-yashil:hover, .btn-yashil:active {
+            background: linear-gradient(135deg, #1B5E20 0%, #2E7D32 100%);
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(46, 125, 50, 0.3);
+        }
+
+        .btn-yashil-outline {
+            background: white;
+            color: #2E7D32;
+            border: 2px solid #4CAF50;
+            border-radius: 10px;
+            padding: 10px 20px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            text-decoration: none;
+            font-size: 0.95rem;
+        }
+
+        .btn-yashil-outline:hover, .btn-yashil-outline:active {
+            background: #E8F5E9;
+            color: #1B5E20;
+            border-color: #2E7D32;
+            transform: translateY(-2px);
+        }
+
+        @media (max-width: 768px) {
+            .btn-yashil, .btn-yashil-outline {
+                padding: 8px 16px;
+                font-size: 0.9rem;
+                gap: 6px;
+            }
+        }
+
+        @media (max-width: 576px) {
+            .btn-yashil, .btn-yashil-outline {
+                padding: 10px;
+                font-size: 0.85rem;
+                width: 100%;
+                margin-bottom: 8px;
+            }
+        }
+
+        /* Form elementlari - mobile optimallashuvi */
+        .form-select, .form-control {
+            border: 2px solid #C8E6C9;
+            border-radius: 10px;
+            padding: 10px 15px;
+            color: #2E7D32;
+            font-size: 0.95rem;
+            transition: all 0.3s ease;
+            height: 48px;
+        }
+
+        .form-select:focus, .form-control:focus {
+            border-color: #4CAF50;
+            box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.2);
+            outline: none;
+        }
+
+        @media (max-width: 768px) {
+            .form-select, .form-control {
+                padding: 8px 12px;
+                height: 44px;
+                font-size: 0.9rem;
+            }
+        }
+
+        /* Filter paneli */
+        .filter-panel {
+            border: 2px solid #1efc31;
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+        }
+
+        @media (max-width: 768px) {
+            .filter-panel {
+                border-width: 1px;
+            }
+        }
+
+        /* Qidiruv input guruhi */
+        .search-input-group {
+            position: relative;
+        }
+
+        .search-input-group .form-control {
+            padding-right: 50px;
+        }
+
+        .search-input-group .search-btn {
+            position: absolute;
+            right: 8px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            color: #4CAF50;
+            z-index: 2;
+        }
+
+        /* Statistikalar gridi - mobile optimallashuvi */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 8px;
+            text-align: center;
+        }
+
+        .stat-item {
+            padding: 10px;
+            border-radius: 10px;
+            background: #F9FDF9;
+            transition: transform 0.2s ease;
+        }
+
+        .stat-item:active {
+            transform: scale(0.95);
+        }
+
+        @media (max-width: 768px) {
+            .stats-grid {
+                gap: 6px;
+            }
+            
+            .stat-item {
+                padding: 8px 6px;
+                border-radius: 8px;
+            }
+            
+            .stat-item small {
+                font-size: 0.75rem;
+            }
+        }
+
+        @media (max-width: 576px) {
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 8px;
+            }
+        }
+
+        /* Harakatlar paneli - mobile optimallashuvi */
+        .actions-panel {
+            position: sticky;
+            bottom: 0;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 15px 0;
+            border-top: 2px solid #E8F5E9;
+            z-index: 100;
+        }
+
+        @media (max-width: 576px) {
+            .actions-panel {
+                padding: 10px 0;
+            }
+            
+            .actions-panel .btn {
+                margin: 0 5px 5px 0;
+                flex: 1;
+                min-width: 120px;
+            }
+        }
+
+        /* Mobile menyu */
+        .mobile-menu {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: white;
+            border-top: 2px solid #E8F5E9;
+            padding: 10px;
+            z-index: 1000;
+            display: none;
+        }
+
+        .mobile-menu-btn {
+            flex: 1;
+            text-align: center;
+            padding: 10px 5px;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            color: #2E7D32;
+            text-decoration: none;
+            font-size: 0.8rem;
+        }
+
+        .mobile-menu-btn:active {
+            background: #E8F5E9;
+        }
+
+        @media (max-width: 768px) {
+            .mobile-menu {
+                display: flex;
+                justify-content: space-around;
+            }
+            
+            .no-mobile {
+                display: none !important;
+            }
+        }
+
+        /* Notification - mobile optimallashuvi */
+        .custom-notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 9999;
+            animation: slideInRight 0.3s ease;
+            max-width: 300px;
+            word-break: break-word;
+        }
+
+        @media (max-width: 576px) {
+            .custom-notification {
+                left: 10px;
+                right: 10px;
+                top: 10px;
+                max-width: none;
+            }
+        }
+
+        /* Responsive jadvallar */
+        .responsive-table {
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        /* Touch optimizatsiyasi */
+        button, a, [role="button"] {
+            -webkit-tap-highlight-color: transparent;
+            user-select: none;
+        }
+
+        /* Loading animatsiyasi */
+        .loading-spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid #E8F5E9;
+            border-top: 4px solid #4CAF50;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Pull to refresh */
+        .pull-to-refresh {
+            text-align: center;
+            padding: 10px;
+            color: #4CAF50;
+            display: none;
+        }
+
+        /* Swipe gesturalari uchun */
+        .swipe-hint {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            background: rgba(76, 175, 80, 0.1);
+            text-align: center;
+            padding: 5px;
+            font-size: 0.8rem;
+            color: #2E7D32;
+            opacity: 0.7;
+        }
+
+        /* Network status */
+        .network-status {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            background: #FFB300;
+            color: white;
+            text-align: center;
+            padding: 5px;
+            z-index: 1001;
+            display: none;
+        }
+
+        /* Print optimizatsiyasi */
+        @media print {
+            .no-print { 
+                display: none !important; 
+            }
+            
+            .mobile-menu {
+                display: none !important;
+            }
+            
+            body { 
+                background: white !important; 
+                color: #1B5E20 !important;
+                font-size: 12pt !important;
+            }
+            
+            .employee-card {
+                box-shadow: none !important;
+                border: 1px solid #ddd !important;
+                page-break-inside: avoid;
+                break-inside: avoid;
+            }
+            
+            .header-section {
+                background: white !important;
+                color: #1B5E20 !important;
+                border: 2px solid #1B5E20;
+            }
+            
+            .stat-card {
+                break-inside: avoid;
+            }
+        }
+
+        /* Animatsiyalar */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .fade-in {
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        @keyframes slideInUp {
+            from { transform: translateY(100%); }
+            to { transform: translateY(0); }
+        }
+
+        /* Custom scrollbar - mobile uchun optimize */
+        @media (min-width: 769px) {
+            ::-webkit-scrollbar {
+                width: 8px;
+            }
+
+            ::-webkit-scrollbar-track {
+                background: #f1f1f1;
+                border-radius: 10px;
+            }
+
+            ::-webkit-scrollbar-thumb {
+                background: #81C784;
+                border-radius: 10px;
+            }
+
+            ::-webkit-scrollbar-thumb:hover {
+                background: #4CAF50;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Network status -->
+    <div class="network-status" id="networkStatus">
+        <i class="fas fa-wifi-slash me-2"></i> Internet ulanmagan
+    </div>
+
+    <div class="container-fluid py-3 py-md-4">
+        <!-- Header -->
+        <div class="header-section fade-in" style="display: flex;">
+            <div class="row align-items-center flex" style="display: flex;">
+                <div class="col-lg-8 mb-4 mb-lg-0">
+                    <div class="d-flex align-items-center mb-3" style="gap: 40px;">
+                        <div class="bg-white p-3 rounded-circle me-3 shadow-sm">
+                            <i class="fas fa-chart-line fa-2x" style="color: #2E7D32;"></i>
+                        </div>
+                        <div>
+                            <h1 class="text-white fw-bold mb-2" style="font-size: 24px;">
+                                <i class="fas fa-calendar-alt me-2"></i>Oylik Davomat Hisoboti
+                            </h1>
+                            <div class="d-flex flex-wrap gap-2">
+                                <span class="badge bg-white px-3 py-2 shadow-sm" style="color: #2E7D32;">
+                                    <i class="fas fa-calendar me-2"></i>
+                                    {% for month_num, month_name in months %}
+                                        {% if month_num == month %}{{ month_name }}{% endif %}
+                                    {% endfor %}
+                                    {{ year }}
+                                </span>
+                                <span class="badge bg-white px-3 py-2 shadow-sm" style="color: #2E7D32;">
+                                    <i class="fas fa-calendar-day me-2"></i>
+                                    {{ start_date|date:"d.m.Y" }} - {{ end_date|date:"d.m.Y" }}
+                                </span>
+                            </div>
+                        </div>
+                        <div class="col-lg-4">
+                            <div class="d-flex flex-wrap justify-content-lg-end justify-content-center gap-2 no-mobile" style="display: flex;">
+                                <a href="{% url 'dashboard' %}" class="btn-yashil-outline no-print">
+                                    <i class="fas fa-tachometer-alt"></i> <span class="d-none d-md-inline">Dashboard</span>
+                                </a>
+                                <a href="{% url 'reports' %}" class="btn-yashil no-print">
+                                    <i class="fas fa-calendar-alt"></i> <span class="d-none d-md-inline">Hisobot</span>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                   
+                </div>
+             
+            </div>
+        </div>
+
+        <!-- Filter va qidiruv paneli -->
+        <div class="card border-0 shadow-sm mb-4 fade-in no-print filter-panel" style="animation-delay: 0.1s;">
+            <div class="card-body p-3">
+                <div class="row g-3 align-items-end">
+                    <!-- Oy va yil filterlari -->
+                    <div class="col-md-4 col-12">
+                        <form method="GET" class="row g-2" id="filterForm">
+                            <div class="col-6">
+                                <label class="form-label fw-bold mb-1" style="color: #2E7D32;">
+                                    <i class="fas fa-filter me-1"></i>Oy
+                                </label>
+                                <select name="month" class="form-select">
+                                    {% for month_num, month_name in months %}
+                                    <option value="{{ month_num }}" {% if month_num == month %}selected{% endif %}>
+                                        {{ month_name }}
+                                    </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="col-6">
+                                <label class="form-label fw-bold mb-1" style="color: #2E7D32;">
+                                    <i class="fas fa-calendar me-1"></i>Yil
+                                </label>
+                                <select name="year" class="form-select">
+                                    {% for y in years %}
+                                    <option value="{{ y }}" {% if y == year %}selected{% endif %}>{{ y }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="col-12 mt-2">
+                                <button type="submit" class="btn-yashil w-100">
+                                    <i class="fas fa-search me-1"></i> Ko'rish
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                    
+                    <!-- Xodim qidiruv qismi -->
+                    <div class="col-md-5 col-12">
+                        <div class="mb-2">
+                            <label class="form-label fw-bold mb-1" style="color: #2E7D32;">
+                                <i class="fas fa-search me-1"></i>Xodim qidirish
+                            </label>
+                            <div class="search-input-group">
+                                <input type="text" 
+                                       class="form-control" 
+                                       id="employeeSearch" 
+                                       placeholder="Ism, familiya yoki lavozim..."
+                                       onkeyup="searchEmployees()"
+                                       autocomplete="off">
+                                <button class="search-btn" type="button" onclick="searchEmployees()">
+                                    <i class="fas fa-search"></i>
+                                </button>
+                            </div>
+                         
+                        </div>
+                    </div>
+                    
+                    <!-- Hisobot turi tugmalari -->
+                    <div class="col-md-3 col-12">
+                        <label class="form-label fw-bold mb-1 d-block" style="color: #2E7D32;">
+                            <i class="fas fa-chart-bar me-1"></i>Hisobot turi
+                        </label>
+                        <div class="d-flex gap-2">
+                            <a href="{% url 'daily_report' %}" class="btn-yashil-outline flex-grow-1 text-center">
+                                <i class="fas fa-sun"></i> <span class="d-none d-md-inline">Kunlik</span>
+                            </a>
+                            <a href="{% url 'weekly_report' %}" class="btn-yashil-outline flex-grow-1 text-center">
+                                <i class="fas fa-calendar-week"></i> <span class="d-none d-md-inline">Haftalik</span>
+                            </a>
+                            <a href="{% url 'monthly_report' %}" class="btn-yashil flex-grow-1 text-center">
+                                <i class="fas fa-calendar-alt"></i> <span class="d-none d-md-inline">Oylik</span>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Qidiruv natijalari -->
+        <div id="searchResults" class="search-result-info fade-in alert alert-info mb-3" style="display: none;">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h6 class="mb-0 fw-bold" style="color: #2E7D32;">
+                        <i class="fas fa-search me-2"></i>
+                        <span id="resultCount">0</span> ta xodim topildi
+                    </h6>
+                    <small class="text-muted" id="searchQueryText"></small>
+                </div>
+                <button class="btn-yashil-outline btn-sm" onclick="clearSearch()">
+                    <i class="fas fa-times me-1"></i> Tozalash
+                </button>
+            </div>
+        </div>
+
+        <!-- Pull to refresh -->
+        <div class="pull-to-refresh" id="pullToRefresh">
+            <i class="fas fa-arrow-down me-2"></i> Yangilash uchun pastga torting
+        </div>
+
+        <!-- Xodimlar statistikasi -->
+        <div class="row fade-in" style="animation-delay: 0.2s;" id="employeesContainer">
+            {% for stat in monthly_stats %}
+            <div class="col-xl-4 col-lg-6 col-md-6 col-12 mb-4 employee-card-container">
+                <article class="card h-100 employee-card">
+                    <div class="swipe-hint d-md-none">
+                        <i class="fas fa-arrow-left"></i> Chapga suring batafsil ma'lumotlar uchun
+                    </div>
+                    <div class="card-body">
+                        <!-- Xodim ma'lumotlari -->
+                        <div class="d-flex align-items-center mb-4">
+                            {% if stat.employee.photo %}
+                            <img src="{{ stat.employee.photo.url }}" alt="{{ stat.employee.full_name }}"
+                                 class="rounded-circle me-3 employee-photo shadow-sm"
+                                 loading="lazy">
+                            {% else %}
+                            <div class="rounded-circle d-flex align-items-center justify-content-center me-3 employee-photo shadow-sm"
+                                 style="background: linear-gradient(135deg, #2E7D32 0%, #4CAF50 100%);">
+                                <i class="fas fa-user text-white"></i>
+                            </div>
+                            {% endif %}
+                            <div class="flex-grow-1">
+                                <h6 class="mb-1 fw-bold text-capitalize" data-searchable="true">
+                                    {{ stat.employee.full_name }}
+                                    <small class="d-block text-muted mt-1" data-searchable="true">
+                                        {{ stat.employee.position }}
+                                    </small>
+                                </h6>
+                            </div>
+                        </div>
+
+                        <!-- Statistik raqamlar -->
+                        <div class="stats-grid mb-3">
+                            <div class="stat-item kelgan">
+                                <span class="stat-number" style="color: #2E7D32;">{{ stat.present_days }}</span>
+                                <small>Kelgan</small>
+                            </div>
+                            <div class="stat-item kelmagan">
+                                <span class="stat-number" style="color: #F44336;">{{ stat.absent_days }}</span>
+                                <small>Kelmagan</small>
+                            </div>
+                            <div class="stat-item kechikdi">
+                                <span class="stat-number" style="color: #FFB300;">{{ stat.late_days }}</span>
+                                <small>Kechikdi</small>
+                            </div>
+                            <div class="stat-item erta">
+                                <span class="stat-number" style="color: #2196F3;">{{ stat.early_days }}</span>
+                                <small>Erta</small>
+                            </div>
+                        </div>
+
+                        <!-- Progress bar -->
+                        <div class="mt-3">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <small class="fw-bold" style="color: #2E7D32;">
+                                    Davomat darajasi
+                                </small>
+                                <span class="attendance-rate
+                                    {% if stat.attendance_rate >= 90 %}rate-excellent
+                                    {% elif stat.attendance_rate >= 70 %}rate-good
+                                    {% elif stat.attendance_rate >= 50 %}rate-average
+                                    {% else %}rate-poor{% endif %}">
+                                    {{ stat.attendance_rate|floatformat:0 }}%
+                                </span>
+                            </div>
+                            <div class="progress progress-thin">
+                                <div class="progress-bar
+                                    {% if stat.attendance_rate >= 90 %}bg-success
+                                    {% elif stat.attendance_rate >= 70 %}bg-info
+                                    {% elif stat.attendance_rate >= 50 %}bg-warning
+                                    {% else %}bg-danger{% endif %}"
+                                     role="progressbar"
+                                     style="width: {{ stat.attendance_rate }}%"
+                                     aria-valuenow="{{ stat.attendance_rate }}"
+                                     aria-valuemin="0" aria-valuemax="100">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <footer class="card-footer bg-transparent border-top py-3" style="border-color: #E8F5E9 !important;">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <small class="text-muted">
+                                <i class="fas fa-calendar-check me-2"></i>
+                                {{ stat.work_days }} ish kuni
+                            </small>
+                            <a href="/employees/{{ stat.employee.id }}/" class="btn-yashil-outline btn-sm">
+                                <i class="fas fa-eye me-1"></i> <span class="d-none d-sm-inline">Batafsil</span>
+                            </a>
+                        </div>
+                    </footer>
+                </article>
+            </div>
+            {% empty %}
+            <div class="col-12">
+                <div class="card shadow-sm border-0">
+                    <div class="card-body text-center py-5">
+                        <div class="mb-4">
+                            <i class="fas fa-calendar-times fa-4x" style="color: #C8E6C9;"></i>
+                        </div>
+                        <h4 class="mb-3 fw-bold" style="color: #2E7D32;">Davomat ma'lumotlari topilmadi</h4>
+                        <p class="text-muted mb-4">Tanlangan oy uchun davomat ma'lumotlari mavjud emas.</p>
+                        <button class="btn-yashil" onclick="location.reload()">
+                            <i class="fas fa-redo me-2"></i> Yangilash
+                        </button>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <!-- Loading spinner -->
+        <div class="text-center py-5" id="loadingSpinner" style="display: none;">
+            <div class="loading-spinner mx-auto mb-3"></div>
+            <p class="text-muted">Yuklanmoqda...</p>
+        </div>
+
+        <!-- Harakatlar paneli -->
+    
+    </div>
+
+    <!-- Mobile menyu -->
+    <div class="mobile-menu">
+        <a href="{% url 'dashboard' %}" class="mobile-menu-btn">
+            <i class="fas fa-tachometer-alt fa-lg mb-1 d-block"></i>
+            Dashboard
+        </a>
+        <a href="{% url 'reports' %}" class="mobile-menu-btn">
+            <i class="fas fa-chart-bar fa-lg mb-1 d-block"></i>
+            Hisobot
+        </a>
+        <button class="mobile-menu-btn" onclick="exportToExcel()">
+            <i class="fas fa-file-excel fa-lg mb-1 d-block"></i>
+            Excel
+        </button>
+        <button class="mobile-menu-btn" onclick="printReport()">
+            <i class="fas fa-print fa-lg mb-1 d-block"></i>
+            Print
+        </button>
+    </div>
+
+    <!-- Employee Details Modal -->
+    <div class="modal fade" id="employeeModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header" style="background: linear-gradient(135deg, #1B5E20 0%, #2E7D32 100%); color: white;">
+                    <h5 class="modal-title">Xodim ma'lumotlari</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body" id="modalBody">
+                    <!-- Dynamic content will be loaded here -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Mobile optimizatsiyalash
+        let touchStartX = 0;
+        let touchEndX = 0;
+        let isSearching = false;
+        
+        // DOM yuklanganda
+        document.addEventListener('DOMContentLoaded', function() {
+            // Touch eventlar
+            setupTouchEvents();
+            
+            // Network monitoring
+            setupNetworkMonitoring();
+            
+            // Pull to refresh
+            setupPullToRefresh();
+            
+            // Auto-hide swipe hint after 5 seconds
+            setTimeout(() => {
+                document.querySelectorAll('.swipe-hint').forEach(hint => {
+                    hint.style.opacity = '0';
+                    setTimeout(() => hint.style.display = 'none', 300);
+                });
+            }, 5000);
+            
+            // Adjust layout for mobile
+            adjustLayoutForMobile();
+            
+            // Listen for orientation changes
+            window.addEventListener('orientationchange', adjustLayoutForMobile);
+            
+            // Search input optimizatsiyasi
+            const searchInput = document.getElementById('employeeSearch');
+            if (searchInput) {
+                searchInput.addEventListener('focus', function() {
+                    this.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                });
+            }
+        });
+        
+        function setupTouchEvents() {
+            const cards = document.querySelectorAll('.employee-card');
+            cards.forEach(card => {
+                card.addEventListener('touchstart', function(e) {
+                    touchStartX = e.changedTouches[0].screenX;
+                }, { passive: true });
+                
+                card.addEventListener('touchend', function(e) {
+                    touchEndX = e.changedTouches[0].screenX;
+                    handleSwipe(this, touchStartX, touchEndX);
+                }, { passive: true });
+                
+                // Prevent long press selection
+                card.addEventListener('contextmenu', function(e) {
+                    e.preventDefault();
+                    return false;
+                });
+            });
+        }
+        
+        function handleSwipe(element, startX, endX) {
+            const swipeThreshold = 50;
+            const diff = startX - endX;
+            
+            if (Math.abs(diff) > swipeThreshold) {
+                if (diff > 0) {
+                    // Swipe left - show details
+                    const btn = element.querySelector('button[data-bs-toggle="modal"]');
+                    if (btn) btn.click();
+                } else {
+                    // Swipe right - highlight
+                    element.classList.add('search-highlight');
+                    setTimeout(() => element.classList.remove('search-highlight'), 1000);
+                }
+            }
+        }
+        
+        function setupNetworkMonitoring() {
+            const networkStatus = document.getElementById('networkStatus');
+            
+            function updateNetworkStatus() {
+                if (navigator.onLine) {
+                    networkStatus.style.display = 'none';
+                } else {
+                    networkStatus.style.display = 'block';
+                }
+            }
+            
+            window.addEventListener('online', updateNetworkStatus);
+            window.addEventListener('offline', updateNetworkStatus);
+            
+            updateNetworkStatus();
+        }
+        
+        function setupPullToRefresh() {
+            let startY = 0;
+            let pullThreshold = 80;
+            const pullToRefresh = document.getElementById('pullToRefresh');
+            
+            document.addEventListener('touchstart', function(e) {
+                startY = e.touches[0].pageY;
+            }, { passive: true });
+            
+            document.addEventListener('touchmove', function(e) {
+                if (window.scrollY === 0 && !isSearching) {
+                    const currentY = e.touches[0].pageY;
+                    const diff = currentY - startY;
+                    
+                    if (diff > 0 && diff < pullThreshold) {
+                        pullToRefresh.style.display = 'block';
+                        pullToRefresh.style.transform = `translateY(${diff}px)`;
+                    }
+                }
+            }, { passive: true });
+            
+            document.addEventListener('touchend', function(e) {
+                if (window.scrollY === 0 && !isSearching) {
+                    const currentY = e.changedTouches[0].pageY;
+                    const diff = currentY - startY;
+                    
+                    if (diff > pullThreshold) {
+                        pullToRefresh.innerHTML = '<div class="loading-spinner mx-auto"></div>';
+                        setTimeout(() => {
+                            location.reload();
+                        }, 500);
+                    } else {
+                        pullToRefresh.style.display = 'none';
+                        pullToRefresh.style.transform = 'translateY(0)';
+                    }
+                }
+            }, { passive: true });
+        }
+        
+        function adjustLayoutForMobile() {
+            if (window.innerWidth <= 768) {
+                // Mobile uchun optimizatsiyalar
+                document.body.classList.add('mobile-view');
+                
+                // Progress bar height
+                document.querySelectorAll('.progress-thin').forEach(progress => {
+                    progress.style.height = '6px';
+                });
+                
+                // Kartalarning paddingini kamaytirish
+                document.querySelectorAll('.card-body').forEach(card => {
+                    card.style.padding = '15px';
+                });
+            } else {
+                document.body.classList.remove('mobile-view');
+            }
+        }
+        
+        // XODIMLARNI QIDIRISH FUNKSIYALARI - optimallashtirilgan
+        let searchTimeout;
+        
+        function searchEmployees() {
+            isSearching = true;
+            clearTimeout(searchTimeout);
+            
+            searchTimeout = setTimeout(() => {
+                const searchInput = document.getElementById('employeeSearch').value.toLowerCase().trim();
+                const employeeCards = document.querySelectorAll('.employee-card');
+                const searchResults = document.getElementById('searchResults');
+                const resultCount = document.getElementById('resultCount');
+                const searchQueryText = document.getElementById('searchQueryText');
+                const loadingSpinner = document.getElementById('loadingSpinner');
+                let foundCount = 0;
+                
+                if (searchInput === '') {
+                    clearSearch();
+                    isSearching = false;
+                    return;
+                }
+                
+                // Show loading
+                if (loadingSpinner) loadingSpinner.style.display = 'block';
+                
+                setTimeout(() => {
+                    employeeCards.forEach(card => {
+                        const cardContainer = card.closest('.employee-card-container');
+                        const employeeName = card.querySelector('[data-searchable="true"]:first-child')?.textContent.toLowerCase() || '';
+                        const employeePosition = card.querySelectorAll('[data-searchable="true"]')[1]?.textContent.toLowerCase() || '';
+                        
+                        // Qidiruv
+                        if (employeeName.includes(searchInput) || 
+                            employeePosition.includes(searchInput) ||
+                            searchInput.split(' ').some(word => 
+                                employeeName.includes(word) || 
+                                employeePosition.includes(word)
+                            )) {
+                            
+                            if (cardContainer) cardContainer.style.display = 'block';
+                            card.classList.add('search-highlight');
+                            foundCount++;
+                        } else {
+                            if (cardContainer) cardContainer.style.display = 'none';
+                            card.classList.remove('search-highlight');
+                        }
+                    });
+                    
+                    // Hide loading
+                    if (loadingSpinner) loadingSpinner.style.display = 'none';
+                    
+                    // Natijalarni ko'rsatish
+                    if (foundCount > 0) {
+                        searchResults.style.display = 'block';
+                        resultCount.textContent = foundCount;
+                        searchQueryText.textContent = `Qidiruv: "${searchInput}"`;
+                        
+                        showNotification(`${foundCount} ta xodim topildi`, 'success');
+                        
+                        // Scroll to results
+                        searchResults.scrollIntoView({ 
+                            behavior: 'smooth', 
+                            block: 'start' 
+                        });
+                    } else {
+                        searchResults.style.display = 'block';
+                        resultCount.textContent = '0';
+                        searchQueryText.textContent = `"${searchInput}" so'zi bo'yicha xodim topilmadi`;
+                        
+                        showNotification('Hech qanday xodim topilmadi', 'warning');
+                    }
+                    
+                    isSearching = false;
+                }, 300); // Artificial delay for better UX
+            }, 500); // Debounce 500ms
+        }
+        
+        function clearSearch() {
+            const searchInput = document.getElementById('employeeSearch');
+            const searchResults = document.getElementById('searchResults');
+            
+            // Inputni tozalash
+            searchInput.value = '';
+            searchInput.blur();
+            
+            // Barcha xodimlarni ko'rsatish
+            document.querySelectorAll('.employee-card-container').forEach(container => {
+                container.style.display = 'block';
+                const card = container.querySelector('.employee-card');
+                if (card) {
+                    card.classList.remove('search-highlight');
+                }
+            });
+            
+            // Natijalar panelini yashirish
+            searchResults.style.display = 'none';
+            
+            showNotification('Qidiruv tozalandi', 'info');
+        }
+        
+        // Enter tugmasi bilan qidirish
+        document.getElementById('employeeSearch').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                searchEmployees();
+            }
+        });
+        
+        // Input boshlanganda
+        document.getElementById('employeeSearch').addEventListener('focus', function() {
+            this.select();
+        });
+        
+        // Boshqa funksiyalar
+        function showEmployeeDetails(employeeId) {
+            // Modal content yuklash
+            const modalBody = document.getElementById('modalBody');
+            modalBody.innerHTML = `
+                <div class="text-center">
+                    <div class="loading-spinner mx-auto mb-3"></div>
+                    <p>Yuklanmoqda...</p>
+                </div>
+            `;
+            
+            // Bu yerda real ma'lumotlarni yuklash bo'ladi
+            setTimeout(() => {
+                modalBody.innerHTML = `
+                    <div class="text-center mb-4">
+                        <div class="employee-photo-lg mx-auto mb-3" style="width: 80px; height: 80px; background: linear-gradient(135deg, #2E7D32 0%, #4CAF50 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                            <i class="fas fa-user text-white fa-2x"></i>
+                        </div>
+                        <h5>Xodim ID: ${employeeId}</h5>
+                    </div>
+                    <div class="row">
+                        <div class="col-6 mb-3">
+                            <small class="text-muted d-block">Kelgan kunlar</small>
+                            <strong class="fs-4" style="color: #2E7D32;">15</strong>
+                        </div>
+                        <div class="col-6 mb-3">
+                            <small class="text-muted d-block">Kech qolgan</small>
+                            <strong class="fs-4" style="color: #FFB300;">2</strong>
+                        </div>
+                        <div class="col-6 mb-3">
+                            <small class="text-muted d-block">Kelmagan</small>
+                            <strong class="fs-4" style="color: #F44336;">1</strong>
+                        </div>
+                        <div class="col-6 mb-3">
+                            <small class="text-muted d-block">Daraja</small>
+                            <span class="attendance-rate rate-excellent">85%</span>
+                        </div>
+                    </div>
+                    <div class="mt-4">
+                        <button class="btn-yashil w-100" onclick="viewFullDetails(${employeeId})">
+                            <i class="fas fa-external-link-alt me-2"></i> To'liq ma'lumot
+                        </button>
+                    </div>
+                `;
+            }, 1000);
+        }
+        
+        function viewFullDetails(employeeId) {
+            // Full details sahifasiga o'tish
+            window.location.href = `/employee/${employeeId}/details/`;
+        }
+        
+        function exportToExcel() {
+            showNotification('Excel fayli tayyorlanmoqda...', 'info');
+            
+            const exportBtn = document.querySelector('button[onclick="exportToExcel()"]');
+            const originalText = exportBtn.innerHTML;
+            exportBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i> Tayyorlanmoqda';
+            exportBtn.disabled = true;
+            
+            setTimeout(() => {
+                exportBtn.innerHTML = originalText;
+                exportBtn.disabled = false;
+                showNotification('Excel fayli muvaffaqiyatli yaratildi!', 'success');
+                
+                // Mobile uchun fayl yuklash imkoniyati
+                if (/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) {
+                    // Mobile device
+                    window.open('data:application/vnd.ms-excel,', '_blank');
+                }
+            }, 1500);
+        }
+        
+        function shareReport() {
+            const searchInput = document.getElementById('employeeSearch').value;
+            let shareText = 'Oylik davomat hisoboti';
+            
+            if (searchInput) {
+                shareText += ` - "${searchInput}" qidiruvi`;
+            }
+            
+            if (navigator.share) {
+                navigator.share({
+                    title: 'Davomat Hisoboti',
+                    text: shareText,
+                    url: window.location.href
+                }).catch(err => {
+                    console.log('Ulashishda xatolik:', err);
+                    copyToClipboard();
+                });
+            } else {
+                copyToClipboard();
+            }
+        }
+        
+        function copyToClipboard() {
+            const text = window.location.href;
+            navigator.clipboard.writeText(text)
+                .then(() => showNotification('Havola nusxalandi!', 'success'))
+                .catch(() => showNotification('Nusxalash amalga oshirilmadi', 'warning'));
+        }
+        
+        function printReport() {
+            // Mobile print optimizatsiyasi
+            if (/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) {
+                if (!confirm('Hisobotni chop etmoqchimisiz?')) return;
+            }
+            
+            window.print();
+        }
+        
+        function refreshReport() {
+            showNotification('Yangilanmoqda...', 'info');
+            setTimeout(() => location.reload(), 500);
+        }
+        
+        // Notification funksiyasi - optimallashtirilgan
+        function showNotification(message, type) {
+            const notification = document.createElement('div');
+            notification.className = `alert alert-${type} custom-notification shadow`;
+            notification.innerHTML = `
+                <div class="d-flex align-items-center">
+                    <i class="fas fa-${getNotificationIcon(type)} me-2"></i>
+                    <span class="flex-grow-1">${message}</span>
+                    <button type="button" class="btn-close" onclick="this.parentElement.parentElement.remove()"></button>
+                </div>
+            `;
+            
+            // Remove old notifications
+            document.querySelectorAll('.custom-notification').forEach(n => n.remove());
+            
+            document.body.appendChild(notification);
+            
+            // Auto remove after 3 seconds
+            setTimeout(() => {
+                if (notification.parentNode) {
+                    notification.style.opacity = '0';
+                    notification.style.transition = 'opacity 0.3s';
+                    setTimeout(() => notification.remove(), 300);
+                }
+            }, 3000);
+        }
+        
+        function getNotificationIcon(type) {
+            const icons = {
+                'success': 'check-circle',
+                'warning': 'exclamation-triangle',
+                'danger': 'times-circle',
+                'info': 'info-circle'
+            };
+            return icons[type] || 'bell';
+        }
+        
+        // Filter form submission
+        document.getElementById('filterForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            showNotification('Filter qo\'llanmoqda...', 'info');
+            setTimeout(() => this.submit(), 300);
+        });
+        
+        // Image loading error handling
+        document.addEventListener('error', function(e) {
+            if (e.target.tagName === 'IMG' && e.target.classList.contains('employee-photo')) {
+                e.target.style.display = 'none';
+                e.target.parentElement.innerHTML = `
+                    <div class="rounded-circle d-flex align-items-center justify-content-center me-3 employee-photo"
+                         style="background: linear-gradient(135deg, #2E7D32 0%, #4CAF50 100%);">
+                        <i class="fas fa-user text-white"></i>
+                    </div>
+                `;
+            }
+        }, true);
+        
+        // Keyboard shortcuts
+        document.addEventListener('keydown', function(e) {
+            // Ctrl/Cmd + F - search focus
+            if ((e.ctrlKey || e.metaKey) && e.key === 'f') {
+                e.preventDefault();
+                document.getElementById('employeeSearch').focus();
+            }
+            
+            // Esc - clear search
+            if (e.key === 'Escape') {
+                clearSearch();
+            }
+            
+            // Ctrl/Cmd + P - print
+            if ((e.ctrlKey || e.metaKey) && e.key === 'p') {
+                e.preventDefault();
+                printReport();
+            }
+        });
+        
+        // Performance optimizatsiyasi
+        window.addEventListener('load', function() {
+            // Lazy loading for images
+            const images = document.querySelectorAll('img[loading="lazy"]');
+            images.forEach(img => {
+                img.loading = 'lazy';
+            });
+            
+            // URL dan qidiruv parametrini o'qish
+            const urlParams = new URLSearchParams(window.location.search);
+            const searchParam = urlParams.get('search');
+            
+            if (searchParam) {
+                document.getElementById('employeeSearch').value = searchParam;
+                setTimeout(() => searchEmployees(), 100);
+            }
+        });
+    </script>
+
+<script>
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register("{% static 'service-worker.js' %}");
+    }
+    </script>
+    
+</body>
+</html>

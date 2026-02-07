@@ -1,0 +1,826 @@
+<!DOCTYPE html>
+<html lang="uz">
+    {% load static %}
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ page_title }} - Face Recognition</title>
+    <link rel="manifest" href="{% static 'manifest.json' %}">
+<meta name="theme-color" content="#0d6efd">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        body {
+            background: #f8f9fa;
+            padding: 20px;
+        }
+        .video-container {
+            position: relative;
+            max-width: 640px;
+            margin: 0 auto;
+            background: black;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+        video {
+            width: 100%;
+            transform: scaleX(-1);
+        }
+        canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            transform: scaleX(-1);
+        }
+        .welcome-banner {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%) translateY(-100px);
+            color: white;
+            padding: 15px 30px;
+            border-radius: 10px;
+            font-size: 18px;
+            font-weight: bold;
+            z-index: 9999;
+            transition: all 0.5s ease;
+            text-align: center;
+            min-width: 300px;
+        }
+        .welcome-checkin {
+            background: linear-gradient(135deg, #10b981, #059669);
+        }
+        .welcome-checkout {
+            background: linear-gradient(135deg, #ef4444, #dc2626);
+        }
+        .welcome-banner.show {
+            transform: translateX(-50%) translateY(0);
+        }
+        #status {
+            background: white;
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 10px;
+            text-align: center;
+            border-left: 5px solid #2563eb;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        .loading { color: #2563eb; font-weight: bold; }
+        .success { color: #10b981; font-weight: bold; }
+        .error { color: #ef4444; font-weight: bold; }
+        .attendance-badge {
+            display: inline-block;
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+        .badge-checkin {
+            background: #d1fae5;
+            color: #065f46;
+        }
+        .badge-checkout {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+        .employee-card {
+            border-radius: 10px;
+            margin-bottom: 10px;
+            transition: all 0.3s;
+        }
+        .employee-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        .nav-tabs .nav-link.active {
+            font-weight: bold;
+        }
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/dist/face-api.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <!-- Navigation -->
+        <div class="row mb-4">
+            <div class="col-md-8">
+                <h1><i class="fas fa-{{ icon }} me-2"></i>{{ page_title }}</h1>
+                <p class="text-muted">
+                    {% if attendance_type == 'in' %}
+                    Kamerani yoqing va yuzingizni ko'rsating. Sistema avtomatik kelishingizni qayd etadi.
+                    {% else %}
+                    Kamerani yoqing va yuzingizni ko'rsating. Sistema avtomatik chiqishingizni qayd etadi.
+                    {% endif %}
+                </p>
+            </div>
+            <div class="col-md-4 text-end">
+                <a href="{% url 'dashboard' %}" class="btn btn-outline-primary">
+                    <i class="fas fa-home me-1"></i> Bosh Sahifa
+                </a>
+                <div class="btn-group mt-2" role="group">
+                    <a href="{% url 'checkin' %}" class="btn {% if attendance_type == 'in' %}btn-success{% else %}btn-outline-success{% endif %}">
+                        <i class="fas fa-sign-in-alt me-1"></i> Kelish
+                    </a>
+                    <a href="{% url 'checkout' %}" class="btn {% if attendance_type == 'out' %}btn-danger{% else %}btn-outline-danger{% endif %}">
+                        <i class="fas fa-sign-out-alt me-1"></i> Chiqish
+                    </a>
+                </div>
+            </div>
+        </div>
+        
+        <div class="row">
+            <!-- LEFT COLUMN - Camera -->
+            <div class="col-md-8">
+                <div class="card mb-4">
+                    <div class="card-header bg-{{ btn_color }} text-white">
+                        <h4 class="mb-0"><i class="fas fa-video me-2"></i>Kamera - {{ page_title }}</h4>
+                    </div>
+                    <div class="card-body">
+                        <!-- Status messages -->
+                        <div id="status">
+                            <span id="statusText">Kamerani yoqish uchun "Kamerani Yoqish" tugmasini bosing</span>
+                        </div>
+                        
+                        <!-- Video container -->
+                        <div class="video-container mt-3">
+                            <video id="video" autoplay muted playsinline></video>
+                            <canvas id="overlay"></canvas>
+                        </div>
+                        
+                        <!-- Controls -->
+                        <div class="text-center mt-3">
+                            <button id="startCamera" class="btn btn-success btn-lg">
+                                <i class="fas fa-play me-2"></i>Kamerani Yoqish
+                            </button>
+                            <button id="stopCamera" class="btn btn-danger btn-lg ms-2" disabled>
+                                <i class="fas fa-stop me-2"></i>To'xtatish
+                            </button>
+                        </div>
+                        
+                        <!-- Manual attendance -->
+                        <div class="card mt-4">
+                            <div class="card-header bg-secondary text-white">
+                                <h5 class="mb-0"><i class="fas fa-user-edit me-2"></i>Qo'lda {{ page_title }}</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-8">
+                                        <label class="form-label">Xodimni tanlang:</label>
+                                        <select id="manualSelect" class="form-select mb-3">
+                                            <option value="">Xodimni tanlang</option>
+                                            {% for emp in employees %}
+                                            <option value="{{ emp.id }}" 
+                                                    {% if emp.id in checked_in_today or emp.id in checked_out_today %}
+                                                    disabled
+                                                    {% endif %}>
+                                                {{ emp.full_name }}
+                                                {% if emp.id in checked_in_today %}
+                                                (✅ Kelgan)
+                                                {% elif emp.id in checked_out_today %}
+                                                (🚪 Chiqgan)
+                                                {% endif %}
+                                            </option>
+                                            {% empty %}
+                                            <option value="" disabled>
+                                                {% if attendance_type == 'out' %}
+                                                Hali kelgan xodim yo'q
+                                                {% else %}
+                                                Xodimlar topilmadi
+                                                {% endif %}
+                                            </option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label class="form-label">&nbsp;</label>
+                                        <button id="manualBtn" class="btn btn-{{ btn_color }} w-100" style="height: 38px;">
+                                            <i class="fas fa-{{ icon }} me-1"></i> {{ page_title }}
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="mt-3" id="employeeStatusInfo">
+                                    <!-- Employee status will be shown here -->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- RIGHT COLUMN - Today's list -->
+            <div class="col-md-4">
+                <div class="card mb-4">
+                    <div class="card-header bg-{{ btn_color }} text-white d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0"><i class="fas fa-{{ icon }} me-2"></i>Bugun {{ page_title }}ganlar</h5>
+                        <span class="badge bg-light text-dark" id="attendanceCount">
+                            {% if attendance_type == 'in' %}
+                                {{ today_checkins|length }}
+                            {% else %}
+                                {{ today_checkouts|length }}
+                            {% endif %}
+                        </span>
+                    </div>
+                    <div class="card-body" style="max-height: 500px; overflow-y: auto;">
+                        <div id="attendanceList">
+                            {% if attendance_type == 'in' %}
+                                {% for att in today_checkins %}
+                                <div class="employee-card p-3 border rounded mb-2">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <strong>{{ att.employee.full_name }}</strong>
+                                            <div class="text-muted small">{{ att.employee.position }}</div>
+                                        </div>
+                                        <div class="text-end">
+                                            <span class="badge-checkin attendance-badge">
+                                                <i class="fas fa-clock"></i> {{ att.time }}
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                                {% empty %}
+                                <div class="text-center py-4">
+                                    <i class="fas fa-user-clock fa-3x text-muted mb-3"></i>
+                                    <p class="text-muted mb-0">Bugun hali hech kim {{ page_title|lower }}magan</p>
+                                </div>
+                                {% endfor %}
+                            {% else %}
+                                {% for att in today_checkouts %}
+                                <div class="employee-card p-3 border rounded mb-2">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <strong>{{ att.employee.full_name }}</strong>
+                                            <div class="text-muted small">{{ att.employee.position }}</div>
+                                        </div>
+                                        <div class="text-end">
+                                            <span class="badge-checkout attendance-badge">
+                                                <i class="fas fa-clock"></i> {{ att.time }}
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                                {% empty %}
+                                <div class="text-center py-4">
+                                    <i class="fas fa-door-open fa-3x text-muted mb-3"></i>
+                                    <p class="text-muted mb-0">Bugun hali hech kim {{ page_title|lower }}magan</p>
+                                </div>
+                                {% endfor %}
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Recent activity log -->
+                <div class="card">
+                    <div class="card-header bg-info text-white">
+                        <h5 class="mb-0"><i class="fas fa-history me-2"></i>So'nggi {{ page_title }}lar</h5>
+                    </div>
+                    <div class="card-body" style="max-height: 250px; overflow-y: auto;">
+                        <div id="detectionLog">
+                            <div class="text-center text-muted small py-3">
+                                <i class="fas fa-info-circle me-1"></i>
+                                Hech qanday harakat yo'q
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Welcome Banner -->
+    <div id="welcomeBanner" class="welcome-banner welcome-{% if attendance_type == 'in' %}checkin{% else %}checkout{% endif %}">
+        <i class="fas fa-check-circle me-2"></i>
+        <span id="welcomeMessage"></span>
+    </div>
+    
+    <!-- Audio -->
+    <audio id="beepSound" src="{% if attendance_type == 'in' %}https://assets.mixkit.co/sfx/preview/mixkit-correct-answer-tone-2870.mp3{% else %}https://assets.mixkit.co/sfx/preview/mixkit-achievement-bell-600.mp3{% endif %}" preload="auto"></audio>
+    <audio id="errorSound" src="https://assets.mixkit.co/sfx/preview/mixkit-wrong-answer-fail-notification-946.mp3" preload="auto"></audio>
+    
+    <script>
+        // ============ KONFIGURATSIYA ============
+        const CONFIG = {
+            MODEL_URL: 'https://cdn.jsdelivr.net/gh/justadudewhohacks/face-api.js@master/weights/',
+            THRESHOLD: 0.45,
+            REQUIRED_MATCHES: 3,
+            DETECTION_INTERVAL: 500,
+            STABLE_TIME: 2000,
+            MIN_CONFIDENCE: 0.5,
+            ATTENDANCE_TYPE: '{{ attendance_type }}'  // 'in' yoki 'out'
+        };
+        
+        // ============ O'ZGARUVCHILAR ============
+        let faceMatcher = null;
+        let recognitionActive = false;
+        let detectionInterval = null;
+        let lastSeen = {};
+        let employeeDescriptors = [];
+        let videoStream = null;
+        
+        // ============ DOM ELEMENTLARI ============
+        const video = document.getElementById('video');
+        const canvas = document.getElementById('overlay');
+        const ctx = canvas.getContext('2d');
+        const startBtn = document.getElementById('startCamera');
+        const stopBtn = document.getElementById('stopCamera');
+        const statusText = document.getElementById('statusText');
+        const manualSelect = document.getElementById('manualSelect');
+        const manualBtn = document.getElementById('manualBtn');
+        
+        // ============ FUNKSIYALAR ============
+        
+        // Status yangilash
+        function updateStatus(text, type = 'info') {
+            statusText.textContent = text;
+            statusText.className = type;
+            console.log(`[Status] ${text}`);
+        }
+        
+        // Log qo'shish
+        function addLog(message, type = 'info') {
+            const logDiv = document.getElementById('detectionLog');
+            
+            // Agar bo'sh bo'lsa, o'chirish
+            if (logDiv.children.length === 1 && logDiv.children[0].classList.contains('text-center')) {
+                logDiv.innerHTML = '';
+            }
+            
+            const logEntry = document.createElement('div');
+            logEntry.className = `mb-2 p-2 border-start border-${getBorderColor(type)} border-3`;
+            logEntry.innerHTML = `
+                <div class="d-flex justify-content-between">
+                    <small><strong>${message}</strong></small>
+                    <small class="text-muted">${new Date().toLocaleTimeString('uz-UZ', {hour: '2-digit', minute:'2-digit'})}</small>
+                </div>
+            `;
+            logDiv.prepend(logEntry);
+            
+            // Faqat oxirgi 8 ta xabarni saqlash
+            while (logDiv.children.length > 8) {
+                logDiv.removeChild(logDiv.lastChild);
+            }
+        }
+        
+        function getBorderColor(type) {
+            switch(type) {
+                case 'success': return 'success';
+                case 'error': return 'danger';
+                case 'warning': return 'warning';
+                default: return 'info';
+            }
+        }
+        
+        // Modellarni yuklash
+        async function loadFaceModels() {
+            updateStatus('Face modellar yuklanmoqda...', 'loading');
+            addLog('Face API modellari yuklanmoqda...');
+            
+            try {
+                await Promise.all([
+                    faceapi.nets.tinyFaceDetector.loadFromUri(CONFIG.MODEL_URL),
+                    faceapi.nets.faceLandmark68Net.loadFromUri(CONFIG.MODEL_URL),
+                    faceapi.nets.faceRecognitionNet.loadFromUri(CONFIG.MODEL_URL),
+                    faceapi.nets.ssdMobilenetv1.loadFromUri(CONFIG.MODEL_URL)
+                ]);
+                
+                updateStatus('✅ Modellar muvaffaqiyatli yuklandi', 'success');
+                addLog('Face API modellari yuklandi', 'success');
+                return true;
+            } catch (error) {
+                updateStatus(`❌ Modellar yuklanmadi: ${error.message}`, 'error');
+                addLog(`Modellar yuklanmadi: ${error.message}`, 'error');
+                return false;
+            }
+        }
+        
+        // Xodim rasmlarini yuklash
+        async function loadEmployeeDescriptors() {
+            updateStatus('Xodim rasmlari yuklanmoqda...', 'loading');
+            
+            // Django'dan ma'lumotlarni olish
+            const employees = [
+                {% for emp in employees %}
+                {
+                    id: {{ emp.id }},
+                    name: "{{ emp.full_name|escapejs }}",
+                    photo_url: "{% if emp.photo %}{{ emp.photo.url }}{% endif %}"
+                },
+                {% endfor %}
+            ];
+            
+            if (employees.length === 0) {
+                updateStatus('❌ Hech qanday xodim topilmadi', 'error');
+                return [];
+            }
+            
+            const labeledDescriptors = [];
+            let loadedCount = 0;
+            
+            for (const emp of employees) {
+                if (!emp.photo_url || emp.photo_url === "") {
+                    addLog(`${emp.name}: Rasm yo'q`, 'warning');
+                    continue;
+                }
+                
+                try {
+                    const img = await faceapi.fetchImage(emp.photo_url);
+                    const detections = await faceapi
+                        .detectAllFaces(img, new faceapi.SsdMobilenetv1Options({ minConfidence: 0.5 }))
+                        .withFaceLandmarks()
+                        .withFaceDescriptors();
+                    
+                    if (detections.length > 0) {
+                        const descriptors = detections.map(d => d.descriptor);
+                        labeledDescriptors.push(new faceapi.LabeledFaceDescriptors(emp.name, descriptors));
+                        loadedCount++;
+                        addLog(`${emp.name}: ${detections.length} ta yuz aniqlandi`, 'success');
+                    } else {
+                        addLog(`${emp.name}: Yuz aniqlanmadi`, 'warning');
+                    }
+                } catch (error) {
+                    addLog(`${emp.name}: Rasm yuklanmadi`, 'error');
+                }
+            }
+            
+            updateStatus(`✅ ${loadedCount} ta xodimning rasmlari yuklandi`, 'success');
+            return labeledDescriptors;
+        }
+        
+        // Kamerani ishga tushirish
+        async function startCamera() {
+            updateStatus('Kamera ochilmoqda...', 'loading');
+            addLog('Kamera ochilmoqda...');
+            
+            try {
+                const constraints = {
+                    video: {
+                        width: { ideal: 640 },
+                        height: { ideal: 480 },
+                        facingMode: "user",
+                        frameRate: { ideal: 30 }
+                    }
+                };
+                
+                videoStream = await navigator.mediaDevices.getUserMedia(constraints);
+                video.srcObject = videoStream;
+                
+                video.onloadedmetadata = () => {
+                    canvas.width = video.videoWidth;
+                    canvas.height = video.videoHeight;
+                    
+                    updateStatus('✅ Kamera ochildi', 'success');
+                    
+                    startBtn.disabled = true;
+                    stopBtn.disabled = false;
+                    
+                    startFaceRecognition();
+                };
+                
+            } catch (error) {
+                updateStatus(`❌ Kamera xatosi: ${error.message}`, 'error');
+                addLog(`Kamera xatosi: ${error.message}`, 'error');
+                
+                if (error.name === 'NotAllowedError') {
+                    alert('Iltimos, kameraga ruxsat bering!');
+                }
+            }
+        }
+        
+        // Face recognition boshlash
+        async function startFaceRecognition() {
+            if (recognitionActive) return;
+            
+            updateStatus('Yuz aniqlash boshlandi...', 'loading');
+            addLog('Yuz aniqlash tizimi ishga tushdi');
+            
+            // Modellarni yuklash
+            const modelsLoaded = await loadFaceModels();
+            if (!modelsLoaded) return;
+            
+            // Xodim descriptor'larini yuklash
+            employeeDescriptors = await loadEmployeeDescriptors();
+            if (employeeDescriptors.length === 0) {
+                updateStatus('❌ Hech qanday xodim rasmi yuklanmadi', 'error');
+                return;
+            }
+            
+            // FaceMatcher yaratish
+            faceMatcher = new faceapi.FaceMatcher(employeeDescriptors, CONFIG.THRESHOLD);
+            
+            // Aniqlashni boshlash
+            recognitionActive = true;
+            updateStatus('🔍 Yuzlarni aniqlash boshlandi...', 'success');
+            
+            detectionInterval = setInterval(detectFaces, CONFIG.DETECTION_INTERVAL);
+        }
+        
+        // Yuzlarni aniqlash
+        async function detectFaces() {
+            if (!recognitionActive || !videoStream) return;
+            
+            try {
+                const detections = await faceapi
+                    .detectAllFaces(video, new faceapi.TinyFaceDetectorOptions({ 
+                        inputSize: 320,
+                        scoreThreshold: CONFIG.MIN_CONFIDENCE 
+                    }))
+                    .withFaceLandmarks()
+                    .withFaceDescriptors();
+                
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                
+                const resizedDetections = faceapi.resizeResults(detections, {
+                    width: canvas.width,
+                    height: canvas.height
+                });
+                
+                // Agar yuz aniqlanmasa
+                if (resizedDetections.length === 0) {
+                    ctx.fillStyle = 'rgba(0,0,0,0.7)';
+                    ctx.fillRect(10, 10, 250, 50);
+                    ctx.fillStyle = 'white';
+                    ctx.font = '16px Arial';
+                    ctx.fillText('📷 Kamera oldiga o\'ting', 20, 35);
+                    ctx.fillText('Yuzingiz aniq ko\'rinsin', 20, 55);
+                    return;
+                }
+                
+                // Har bir yuz uchun
+                resizedDetections.forEach(detection => {
+                    const box = detection.detection.box;
+                    const bestMatch = faceMatcher.findBestMatch(detection.descriptor);
+                    
+                    // Reng tanlash
+                    let color = '#ef4444'; // default - noma'lum
+                    if (bestMatch.label !== 'unknown' && bestMatch.distance < CONFIG.THRESHOLD) {
+                        color = CONFIG.ATTENDANCE_TYPE === 'in' ? '#22c55e' : '#dc2626';
+                    }
+                    
+                    // To'rtburchak chizish
+                    ctx.strokeStyle = color;
+                    ctx.lineWidth = 3;
+                    ctx.strokeRect(box.x, box.y, box.width, box.height);
+                    
+                    // Matn uchun fon
+                    ctx.fillStyle = 'rgba(0,0,0,0.7)';
+                    const textWidth = ctx.measureText(bestMatch.label).width + 40;
+                    ctx.fillRect(box.x, box.y - 30, Math.max(textWidth, box.width), 30);
+                    
+                    // Ism va ishonch darajasi
+                    ctx.fillStyle = 'white';
+                    ctx.font = '14px Arial';
+                    const labelText = bestMatch.label !== 'unknown' 
+                        ? `${bestMatch.label} (${bestMatch.distance.toFixed(2)})`
+                        : 'Noma\'lum';
+                    ctx.fillText(labelText, box.x + 5, box.y - 10);
+                    
+                    // Agar tanib olingan bo'lsa
+                    if (bestMatch.label !== 'unknown' && bestMatch.distance < CONFIG.THRESHOLD) {
+                        handleRecognition(bestMatch.label);
+                    }
+                });
+                
+            } catch (error) {
+                console.error('Detection error:', error);
+                addLog(`Aniqlash xatosi: ${error.message}`, 'error');
+            }
+        }
+        
+        // Tanib olingan yuzni qayd etish
+        function handleRecognition(employeeName) {
+            const now = Date.now();
+            
+            if (!lastSeen[employeeName]) {
+                lastSeen[employeeName] = [];
+            }
+            
+            // Eski yozuvlarni tozalash
+            lastSeen[employeeName] = lastSeen[employeeName].filter(time => now - time < CONFIG.STABLE_TIME);
+            lastSeen[employeeName].push(now);
+            
+            // Kerakli miqdordagi mos kelishlar
+            if (lastSeen[employeeName].length >= CONFIG.REQUIRED_MATCHES) {
+                markAttendanceByName(employeeName);
+                lastSeen[employeeName] = [];
+            }
+        }
+        
+        // Ism orqali attendance belgilash
+        function markAttendanceByName(employeeName) {
+            // Employee ID ni topish
+            let employeeId = null;
+            
+            for (let option of manualSelect.options) {
+                if (option.text.includes(employeeName)) {
+                    employeeId = option.value;
+                    break;
+                }
+            }
+            
+            if (!employeeId) {
+                addLog(`${employeeName}: ID topilmadi`, 'error');
+                return;
+            }
+            
+            markAttendance(employeeId, employeeName);
+        }
+        
+        // Serverga attendance yuborish
+        function markAttendance(employeeId, employeeName = null) {
+            fetch('/mark-attendance/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCookie('csrftoken')
+                },
+                body: JSON.stringify({ 
+                    employee_id: employeeId,
+                    type: CONFIG.ATTENDANCE_TYPE
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    // Audio
+                    document.getElementById('beepSound').play();
+                    
+                    // Jadvalni yangilash
+                    updateAttendanceTable(data);
+                    
+                    // Welcome banner
+                    const message = CONFIG.ATTENDANCE_TYPE === 'in' 
+                        ? `👋 Xush kelibsiz, ${data.employee_name}!` 
+                        : `👋 Xayr, ${data.employee_name}! Rahmat!`;
+                    showWelcome(message);
+                    
+                    // Status
+                    updateStatus(`${data.employee_name} ${data.type_display} qayd etildi`, 'success');
+                    addLog(`${data.employee_name} ${data.type_display.toLowerCase()}i: ${data.time}`, 'success');
+                    
+                    // Option'ni disabled qilish
+                    for (let option of manualSelect.options) {
+                        if (option.value == employeeId) {
+                            option.disabled = true;
+                            option.text = `${employeeName} (✅ ${CONFIG.ATTENDANCE_TYPE === 'in' ? 'Kelgan' : 'Chiqgan'})`;
+                            break;
+                        }
+                    }
+                    
+                } else {
+                    document.getElementById('errorSound').play();
+                    updateStatus(data.message, 'error');
+                    addLog(data.message, 'error');
+                }
+            })
+            .catch(error => {
+                console.error('Fetch error:', error);
+                updateStatus(`Server xatosi: ${error.message}`, 'error');
+                addLog(`Server xatosi: ${error.message}`, 'error');
+            });
+        }
+        
+        // Jadvalni yangilash
+        function updateAttendanceTable(data) {
+            const timeBadge = CONFIG.ATTENDANCE_TYPE === 'in' 
+                ? `<span class="badge-checkin attendance-badge"><i class="fas fa-clock"></i> ${data.time}</span>`
+                : `<span class="badge-checkout attendance-badge"><i class="fas fa-clock"></i> ${data.time}</span>`;
+            
+            const employeeCard = `
+                <div class="employee-card p-3 border rounded mb-2">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <strong>${data.employee_name}</strong>
+                            <div class="text-muted small">${data.type_display}</div>
+                        </div>
+                        <div class="text-end">
+                            ${timeBadge}
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            const attendanceList = document.getElementById('attendanceList');
+            const attendanceCount = document.getElementById('attendanceCount');
+            
+            // Agar bo'sh bo'lsa
+            if (attendanceList.children.length === 1 && attendanceList.children[0].classList.contains('text-center')) {
+                attendanceList.innerHTML = '';
+            }
+            
+            attendanceList.insertAdjacentHTML('afterbegin', employeeCard);
+            attendanceCount.textContent = parseInt(attendanceCount.textContent) + 1;
+        }
+        
+        // Kamera to'xtatish
+        function stopCamera() {
+            if (detectionInterval) {
+                clearInterval(detectionInterval);
+                detectionInterval = null;
+            }
+            
+            recognitionActive = false;
+            
+            if (videoStream) {
+                videoStream.getTracks().forEach(track => track.stop());
+                videoStream = null;
+            }
+            
+            video.srcObject = null;
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            startBtn.disabled = false;
+            stopBtn.disabled = true;
+            
+            updateStatus('Kamera to\'xtatildi', 'info');
+            addLog('Kamera to\'xtatildi');
+        }
+        
+        // Welcome banner ko'rsatish
+        function showWelcome(message) {
+            const banner = document.getElementById('welcomeBanner');
+            const messageEl = document.getElementById('welcomeMessage');
+            
+            messageEl.textContent = message;
+            banner.classList.add('show');
+            
+            setTimeout(() => {
+                banner.classList.remove('show');
+            }, 3000);
+        }
+        
+        // CSRF token olish
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+        
+        // ============ EVENT LISTENER'LAR ============
+        
+        // Kamerani yoqish
+        startBtn.addEventListener('click', async () => {
+            try {
+                await startCamera();
+            } catch (error) {
+                console.error('Start camera error:', error);
+                updateStatus(`❌ Xato: ${error.message}`, 'error');
+            }
+        });
+        
+        // Kamerani to'xtatish
+        stopBtn.addEventListener('click', stopCamera);
+        
+        // Qo'lda belgilash
+        manualBtn.addEventListener('click', () => {
+            const employeeId = manualSelect.value;
+            const employeeName = manualSelect.options[manualSelect.selectedIndex].text.split(' (')[0];
+            
+            if (!employeeId) {
+                alert('Xodimni tanlang!');
+                return;
+            }
+            
+            if (manualSelect.options[manualSelect.selectedIndex].disabled) {
+                alert('Bu xodim allaqachon belgilangan!');
+                return;
+            }
+            
+            markAttendance(employeeId, employeeName);
+        });
+        
+        // Sahifa yuklanganda
+        document.addEventListener('DOMContentLoaded', () => {
+            addLog('Tizim tayyor. "Kamerani Yoqish" tugmasini bosing.');
+            updateStatus('Tizim tayyor. Kamerani yoqing va yuzingizni ko\'rsating.', 'success');
+        });
+        
+        // Sahifa yopilganda kamerani to'xtatish
+        window.addEventListener('beforeunload', function() {
+            stopCamera();
+        });
+        
+    </script>
+    
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+        if ('serviceWorker' in navigator) {
+          navigator.serviceWorker.register("{% static 'service-worker.js' %}");
+        }
+        </script>
+        
+</body>
+</html>

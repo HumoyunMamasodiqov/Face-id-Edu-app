@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="uz">
+    {% load static %}
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Davomat Hisobotlari</title>
+    <link rel="manifest" href="{% static 'manifest.json' %}">
+<meta name="theme-color" content="#0d6efd">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        body { background-color: #f8f9fa; }
+        .header-section { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border-radius: 15px; padding: 25px; margin-bottom: 30px; }
+        .filter-card { background: white; border-radius: 15px; padding: 20px; box-shadow: 0 5px 15px rgba(0,0,0,0.05); margin-bottom: 30px; }
+        .attendance-card { background: white; border-radius: 10px; margin-bottom: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        .attendance-header { background: #f8f9fa; padding: 15px; border-radius: 10px 10px 0 0; }
+        .attendance-body { padding: 15px; }
+        .status-ontime { color: #28a745; }
+        .status-late { color: #ffc107; }
+        .status-early { color: #17a2b8; }
+        .status-day_off { color: #6c757d; }
+        .badge-status { padding: 5px 10px; border-radius: 20px; font-size: 12px; }
+        .badge-ontime { background: #d4edda; color: #155724; }
+        .badge-late { background: #fff3cd; color: #856404; }
+        .badge-early { background: #d1ecf1; color: #0c5460; }
+        .badge-day_off { background: #e2e3e5; color: #383d41; }
+        .stat-card { border-radius: 10px; padding: 15px; color: white; margin-bottom: 15px; }
+        .stat-total { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+        .stat-ontime { background: linear-gradient(135deg, #28a745 0%, #20c997 100%); }
+        .stat-late { background: linear-gradient(135deg, #ffc107 0%, #fd7e14 100%); }
+        .stat-early { background: linear-gradient(135deg, #17a2b8 0%, #138496 100%); }
+        .penalty-badge { background: #ffc107; color: black; }
+        .pagination-container { margin-top: 30px; }
+        .export-buttons { margin-top: 20px; }
+    </style>
+</head>
+<body>
+    <div class="container-fluid py-4">
+        <!-- Sarlavha -->
+        <div class="header-section">
+            <div class="row align-items-center">
+                <div class="col-md-8">
+                    <h1 class="display-6 mb-3">
+                        <i class="fas fa-calendar-alt me-2"></i>Davomat Hisobotlari
+                    </h1>
+                    <p class="mb-0">Barcha xodimlarning kelish/chiqish tarixi va statistikasi</p>
+                </div>
+                <div class="col-md-4 text-end">
+                    <a href="/dashboard/" class="btn btn-light me-2">
+                        <i class="fas fa-tachometer-alt"></i> Dashboard
+                    </a>
+                    <a href="/employees/" class="btn btn-light">
+                        <i class="fas fa-users"></i> Xodimlar
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Statistikalar -->
+        <div class="row mb-4">
+            <div class="col-md-3 col-6 mb-3">
+                <div class="stat-card stat-total">
+                    <h6 class="mb-2">Jami Davomatlar</h6>
+                    <h3 class="mb-0">{{ total_count }}</h3>
+                </div>
+            </div>
+            <div class="col-md-3 col-6 mb-3">
+                <div class="stat-card stat-ontime">
+                    <h6 class="mb-2">Vaqtida</h6>
+                    <h3 class="mb-0">{{ ontime_count }}</h3>
+                </div>
+            </div>
+            <div class="col-md-3 col-6 mb-3">
+                <div class="stat-card stat-late">
+                    <h6 class="mb-2">Kechikkanlar</h6>
+                    <h3 class="mb-0">{{ late_count }}</h3>
+                </div>
+            </div>
+            <div class="col-md-3 col-6 mb-3">
+                <div class="stat-card stat-early">
+                    <h6 class="mb-2">Erta Kelganlar</h6>
+                    <h3 class="mb-0">{{ early_count }}</h3>
+                </div>
+            </div>
+        </div>
+
+        <!-- Filter qutisi -->
+        <div class="filter-card">
+            <h5 class="mb-3"><i class="fas fa-filter me-2"></i>Filterlar</h5>
+            <form method="GET" class="row g-3">
+                <div class="col-md-3">
+                    <label class="form-label">Boshlash sanasi</label>
+                    <input type="date" name="start_date" class="form-control" value="{{ start_date }}">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Tugash sanasi</label>
+                    <input type="date" name="end_date" class="form-control" value="{{ end_date }}">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Xodim</label>
+                    <select name="employee_id" class="form-select">
+                        <option value="">Barcha xodimlar</option>
+                        {% for emp in employees %}
+                        <option value="{{ emp.id }}" {% if emp.id|stringformat:"s" == selected_employee %}selected{% endif %}>
+                            {{ emp.full_name }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Holat</label>
+                    <select name="status" class="form-select">
+                        <option value="">Barcha holatlar</option>
+                        <option value="ontime" {% if selected_status == 'ontime' %}selected{% endif %}>Vaqtida</option>
+                        <option value="late" {% if selected_status == 'late' %}selected{% endif %}>Kechikdi</option>
+                        <option value="early" {% if selected_status == 'early' %}selected{% endif %}>Erta keldi</option>
+                        <option value="day_off" {% if selected_status == 'day_off' %}selected{% endif %}>Dam olish</option>
+                    </select>
+                </div>
+                <div class="col-md-12">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-search me-1"></i> Hisobotni ko'rish
+                    </button>
+                    <a href="/attendance-report/" class="btn btn-secondary ms-2">
+                        <i class="fas fa-redo me-1"></i> Tozalash
+                    </a>
+                </div>
+            </form>
+        </div>
+
+        <!-- Davomat jadvali -->
+        {% if attendances %}
+        <div class="card">
+            <div class="card-header bg-white">
+                <h5 class="mb-0"><i class="fas fa-list me-2"></i>Davomatlar ro'yxati</h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Xodim</th>
+                                <th>Sana</th>
+                                <th>Vaqt</th>
+                                <th>Turi</th>
+                                <th>Holat</th>
+                                <th>Kechikish</th>
+                                <th>Jarima</th>
+                                <th>Izoh</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for att in attendances %}
+                            <tr>
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        {% if att.employee.photo %}
+                                        <img src="{{ att.employee.photo.url }}" class="rounded-circle me-2" width="30" height="30">
+                                        {% endif %}
+                                        <div>
+                                            <strong>{{ att.employee.full_name }}</strong><br>
+                                            <small class="text-muted">{{ att.employee.position }}</small>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>{{ att.date|date:"d.m.Y" }}</td>
+                                <td>{{ att.time|time:"H:i" }}</td>
+                                <td>
+                                    {% if att.type == 'in' %}
+                                    <span class="badge bg-success">Kelish</span>
+                                    {% else %}
+                                    <span class="badge bg-danger">Chiqish</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if att.status == 'ontime' %}
+                                    <span class="badge badge-status badge-ontime">
+                                        <i class="fas fa-check-circle me-1"></i>Vaqtida
+                                    </span>
+                                    {% elif att.status == 'late' %}
+                                    <span class="badge badge-status badge-late">
+                                        <i class="fas fa-clock me-1"></i>Kechikdi
+                                    </span>
+                                    {% elif att.status == 'early' %}
+                                    <span class="badge badge-status badge-early">
+                                        <i class="fas fa-bolt me-1"></i>Erta keldi
+                                    </span>
+                                    {% elif att.status == 'day_off' %}
+                                    <span class="badge badge-status badge-day_off">
+                                        <i class="fas fa-umbrella-beach me-1"></i>Dam olish
+                                    </span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if att.late_minutes > 0 %}
+                                    <span class="text-warning">{{ att.late_minutes }} daqiqa</span>
+                                    {% else %}
+                                    <span class="text-muted">-</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if att.penalty_amount > 0 %}
+                                    <span class="badge penalty-badge">
+                                        {{ att.penalty_amount|floatformat:0 }} so'm
+                                    </span>
+                                    {% else %}
+                                    <span class="text-muted">-</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if att.notes %}
+                                    <small class="text-muted">{{ att.notes|truncatechars:20 }}</small>
+                                    {% else %}
+                                    <span class="text-muted">-</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Pagination -->
+        <div class="pagination-container">
+            <nav aria-label="Page navigation">
+                <ul class="pagination justify-content-center">
+                    {% if attendances.has_previous %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page=1{% if start_date %}&start_date={{ start_date }}{% endif %}{% if end_date %}&end_date={{ end_date }}{% endif %}{% if selected_employee %}&employee_id={{ selected_employee }}{% endif %}{% if selected_status %}&status={{ selected_status }}{% endif %}">
+                            <i class="fas fa-angle-double-left"></i>
+                        </a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ attendances.previous_page_number }}{% if start_date %}&start_date={{ start_date }}{% endif %}{% if end_date %}&end_date={{ end_date }}{% endif %}{% if selected_employee %}&employee_id={{ selected_employee }}{% endif %}{% if selected_status %}&status={{ selected_status }}{% endif %}">
+                            <i class="fas fa-angle-left"></i>
+                        </a>
+                    </li>
+                    {% endif %}
+
+                    <li class="page-item active">
+                        <span class="page-link">
+                            {{ attendances.number }} / {{ attendances.paginator.num_pages }}
+                        </span>
+                    </li>
+
+                    {% if attendances.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ attendances.next_page_number }}{% if start_date %}&start_date={{ start_date }}{% endif %}{% if end_date %}&end_date={{ end_date }}{% endif %}{% if selected_employee %}&employee_id={{ selected_employee }}{% endif %}{% if selected_status %}&status={{ selected_status }}{% endif %}">
+                            <i class="fas fa-angle-right"></i>
+                        </a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ attendances.paginator.num_pages }}{% if start_date %}&start_date={{ start_date }}{% endif %}{% if end_date %}&end_date={{ end_date }}{% endif %}{% if selected_employee %}&employee_id={{ selected_employee }}{% endif %}{% if selected_status %}&status={{ selected_status }}{% endif %}">
+                            <i class="fas fa-angle-double-right"></i>
+                        </a>
+                    </li>
+                    {% endif %}
+                </ul>
+            </nav>
+        </div>
+
+        <!-- Eksport qilish -->
+        
+
+        {% else %}
+        <!-- Ma'lumot yo'q -->
+        <div class="card">
+            <div class="card-body text-center py-5">
+                <i class="fas fa-calendar-times fa-4x text-muted mb-4"></i>
+                <h4 class="mb-3">Davomat ma'lumotlari topilmadi</h4>
+                <p class="text-muted mb-4">Tanlangan filterlar bo'yicha davomat ma'lumotlari mavjud emas.</p>
+                <a href="/attendance-report/" class="btn btn-primary">
+                    <i class="fas fa-redo me-1"></i> Filterlarni tozalash
+                </a>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- JavaScript -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Hisobotni chop etish
+        function printReport() {
+            window.print();
+        }
+
+        // Excel'ga eksport qilish
+        function exportToExcel() {
+            alert('Excel fayliga yuklash funktsiyasi ishlab turibdi!');
+            // Bu yerda Excel eksport qilish kodi bo'lishi mumkin
+        }
+
+        // Sanalarni to'g'ri formatlash
+        document.addEventListener('DOMContentLoaded', function() {
+            // Bugungi sana uchun default qiymat
+            const today = new Date().toISOString().split('T')[0];
+            
+            // Agar start_date bo'sh bo'lsa, oy boshiga qo'yish
+            const startDateInput = document.querySelector('input[name="start_date"]');
+            if (!startDateInput.value) {
+                const firstDay = new Date();
+                firstDay.setDate(1);
+                startDateInput.value = firstDay.toISOString().split('T')[0];
+            }
+            
+            // Agar end_date bo'sh bo'lsa, bugungi kunga qo'yish
+            const endDateInput = document.querySelector('input[name="end_date"]');
+            if (!endDateInput.value) {
+                endDateInput.value = today;
+            }
+        });
+
+        // Filter parametrlarini saqlash
+        function saveFilters() {
+            const filters = {
+                start_date: document.querySelector('input[name="start_date"]').value,
+                end_date: document.querySelector('input[name="end_date"]').value,
+                employee_id: document.querySelector('select[name="employee_id"]').value,
+                status: document.querySelector('select[name="status"]').value
+            };
+            localStorage.setItem('attendance_filters', JSON.stringify(filters));
+        }
+
+        // Filter parametrlarini yuklash
+        function loadFilters() {
+            const savedFilters = localStorage.getItem('attendance_filters');
+            if (savedFilters) {
+                const filters = JSON.parse(savedFilters);
+                document.querySelector('input[name="start_date"]').value = filters.start_date || '';
+                document.querySelector('input[name="end_date"]').value = filters.end_date || '';
+                document.querySelector('select[name="employee_id"]').value = filters.employee_id || '';
+                document.querySelector('select[name="status"]').value = filters.status || '';
+            }
+        }
+
+        // Sahifa yuklanganda filterlarni yuklash
+        document.addEventListener('DOMContentLoaded', loadFilters);
+
+        // Form yuborilganda filterlarni saqlash
+        document.querySelector('form').addEventListener('submit', saveFilters);
+    </script>
+<script>
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register("{% static 'service-worker.js' %}");
+    }
+    </script>
+    
+
+</body>
+</html>

@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="uz">
+    {% load static %}
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kirish/Chiqish - Davomat</title>
+    <link rel="manifest" href="{% static 'manifest.json' %}">
+<meta name="theme-color" content="#0d6efd">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <script src="https://cdn.tailwindcss.com/3.4.16"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#10B981',
+                        secondary: '#EF4444',
+                        success: '#22C55E',
+                        warning: '#F59E0B'
+                    },
+                    borderRadius: {
+                        'none': '0px',
+                        'sm': '4px',
+                        DEFAULT: '8px',
+                        'md': '12px',
+                        'lg': '16px',
+                        'xl': '20px',
+                        '2xl': '24px',
+                        '3xl': '32px',
+                        'full': '9999px',
+                        'button': '8px'
+                    },
+                    animation: {
+                        'pulse-glow': 'pulse-glow 2s infinite',
+                        'slide-in': 'slide-in 0.3s ease-out',
+                        'slide-up': 'slide-up 0.5s ease-out',
+                        'bounce-subtle': 'bounce-subtle 0.5s ease-in-out',
+                        'fade-in': 'fade-in 0.5s ease-out',
+                        'ripple': 'ripple 0.6s linear',
+                        'confetti': 'confetti 5s ease-in-out'
+                    },
+                    keyframes: {
+                        'pulse-glow': {
+                            '0%, 100%': { 'box-shadow': '0 0 0 0 rgba(16, 185, 129, 0.3)' },
+                            '50%': { 'box-shadow': '0 0 0 10px rgba(16, 185, 129, 0)' }
+                        },
+                        'slide-in': {
+                            '0%': { transform: 'translateY(-20px)', opacity: '0' },
+                            '100%': { transform: 'translateY(0)', opacity: '1' }
+                        },
+                        'slide-up': {
+                            '0%': { transform: 'translateY(100px)', opacity: '0' },
+                            '100%': { transform: 'translateY(0)', opacity: '1' }
+                        },
+                        'bounce-subtle': {
+                            '0%, 100%': { transform: 'translateY(0)' },
+                            '50%': { transform: 'translateY(-5px)' }
+                        },
+                        'fade-in': {
+                            '0%': { opacity: '0' },
+                            '100%': { opacity: '1' }
+                        },
+                        'ripple': {
+                            '0%': { transform: 'scale(0)', opacity: '1' },
+                            '100%': { transform: 'scale(4)', opacity: '0' }
+                        },
+                        'confetti': {
+                            '0%': { transform: 'translateY(0) rotate(0deg)', opacity: '1' },
+                            '100%': { transform: 'translateY(100vh) rotate(720deg)', opacity: '0' }
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Pacifico&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/remixicon/4.6.0/remixicon.min.css" rel="stylesheet">
+    <style>
+        :where([class^="ri-"])::before { content: "\f3c2"; }
+        
+        /* Custom Styles */
+        .glass-effect {
+            background: rgba(255, 255, 255, 0.25);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+        }
+        
+        .neumorphic {
+            border-radius: 20px;
+            background: #f0f0f0;
+            box-shadow:  10px 10px 20px #d9d9d9, -10px -10px 20px #ffffff;
+        }
+        
+        .gradient-border {
+            position: relative;
+            background: white;
+            border-radius: 16px;
+        }
+        
+        .gradient-border::after {
+            content: '';
+            position: absolute;
+            top: -2px;
+            left: -2px;
+            right: -2px;
+            bottom: -2px;
+            background: linear-gradient(45deg, #10B981, #3B82F6, #8B5CF6);
+            border-radius: 18px;
+            z-index: -1;
+            animation: rotate 3s linear infinite;
+        }
+        
+        @keyframes rotate {
+            0% { filter: hue-rotate(0deg); }
+            100% { filter: hue-rotate(360deg); }
+        }
+        
+        .clock-digit {
+            font-variant-numeric: tabular-nums;
+        }
+        
+        .ripple-effect {
+            position: absolute;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.7);
+            transform: scale(0);
+            animation: ripple 0.6s linear;
+            pointer-events: none;
+        }
+        
+        .confetti {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            opacity: 0;
+            z-index: 100;
+        }
+        @media screen and (max-width: 980px) {
+            .btnlar {
+                margin-top: 30px;
+            }
+            
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-gray-50 to-blue-50 font-sans">
+    <!-- Navigation -->
+    <nav class="fixed top-0 w-full glass-effect z-50 animate-slide-in">
+        <div class="flex items-center justify-between px-4 py-3">
+            <button class="w-10 h-10 flex items-center justify-center cursor-pointer rounded-full hover:bg-gray-100 active:scale-95 transition-all duration-200" id="backBtn">
+                <i class="ri-arrow-left-line text-xl text-gray-700"></i>
+            </button>
+            <h1 class="text-lg font-semibold text-gray-900">Kirish / Chiqish</h1>
+            <button class="w-10 h-10 flex items-center justify-center cursor-pointer rounded-full hover:bg-gray-100 active:scale-95 transition-all duration-200" id="menuBtn">
+                <i class="ri-more-line text-xl text-gray-700"></i>
+            </button>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="pt-16 pb-6 px-4">
+        <!-- Animated Time Display -->
+        <div class="text-center mb-8 animate-slide-up">
+            <div class="gradient-border p-1 mb-6">
+                <div class="bg-white rounded-2xl p-6">
+                    <div class="text-5xl font-bold text-gray-900 mb-2 clock-digit" id="currentTime">14:25</div>
+                    <div class="text-sm text-gray-600" id="currentDate">31 Yanvar 2026, Shanba</div>
+                    
+                    <!-- Status Indicator -->
+                    <div class="mt-4 flex items-center justify-center gap-2">
+                        <div class="w-2 h-2 rounded-full bg-green-500 animate-pulse" id="statusIndicator"></div>
+                        <span class="text-xs font-medium text-gray-700" id="statusText">Faol</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class=" btnlar  grid grid-cols-2 gap-4 mb-8 mt-4 ">
+            <a class="bg-gradient-to-br from-green-500 to-emerald-600 text-white py-5 px-6 !rounded-button font-semibold text-lg shadow-lg hover:shadow-xl transition-all duration-200 cursor-pointer relative overflow-hidden group animate-bounce-subtle hover:animate-none active:scale-95" href="{% url 'checkin' %}">
+   
+                <!-- Ripple effect container -->
+              
+                
+                <div class="w-10 h-10 flex items-center justify-center mx-auto mb-2 group-hover:scale-110 transition-transform duration-200">
+                    <i class="ri-login-circle-fill text-3xl"></i>
+                </div>
+                KIRISH
+                <div class="text-xs font-normal mt-1 opacity-80">Ishga kirish</div>
+       
+        </a>
+        <a class="bg-gradient-to-br from-red-500 to-pink-600 text-white py-5 px-6 !rounded-button font-semibold text-lg shadow-lg hover:shadow-xl transition-all duration-200 cursor-pointer relative overflow-hidden group animate-bounce-subtle hover:animate-none active:scale-95 animation-delay-100"" href="{% url 'checkout' %}">
+     
+                <!-- Ripple effect container -->
+                <div id="checkoutRipple"></div>
+                
+                <div class="w-10 h-10 flex items-center justify-center mx-auto mb-2 group-hover:scale-110 transition-transform duration-200">
+                    <i class="ri-logout-circle-fill text-3xl"></i>
+                </div>
+                CHIQISH
+                <div class="text-xs font-normal mt-1 opacity-80">Ishdan chiqish</div>
+      
+        </a>
+        </div>
+
+        <!-- Statistics Cards -->
+       
+
+        <!-- Activity History -->
+       
+    </main>
+
+    <!-- Floating Action Button -->
+    <button class="fixed bottom-6 right-6 w-14 h-14 bg-gradient-to-br from-primary to-blue-500 text-white rounded-full shadow-xl flex items-center justify-center cursor-pointer z-40 animate-pulse-glow hover:animate-none hover:scale-110 active:scale-95 transition-all duration-200" id="statsBtn">
+        <i class="ri-bar-chart-line text-2xl"></i>
+    </button>
+
+    <!-- Confetti Container -->
+    <div id="confettiContainer" class="fixed inset-0 pointer-events-none z-50 overflow-hidden"></div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Elements
+            const checkinBtn = document.getElementById('checkinBtn');
+            const checkoutBtn = document.getElementById('checkoutBtn');
+            const checkinRipple = document.getElementById('checkinRipple');
+            const checkoutRipple = document.getElementById('checkoutRipple');
+            const currentTimeElement = document.getElementById('currentTime');
+            const currentDateElement = document.getElementById('currentDate');
+            const workHoursElement = document.getElementById('workHours');
+            const checkinCountElement = document.getElementById('checkinCount');
+            const activityList = document.getElementById('activityList');
+            const emptyActivities = document.getElementById('emptyActivities');
+            const statusIndicator = document.getElementById('statusIndicator');
+            const statusText = document.getElementById('statusText');
+            const confettiContainer = document.getElementById('confettiContainer');
+            const statsBtn = document.getElementById('statsBtn');
+            const backBtn = document.getElementById('backBtn');
+            const menuBtn = document.getElementById('menuBtn');
+            
+            // State variables
+            let checkinTime = null;
+            let checkinCount = 0;
+            let activities = [];
+            let isCheckedIn = false;
+            
+            // Ripple effect function
+            function createRipple(event, container) {
+                const ripple = document.createElement('div');
+                const rect = event.currentTarget.getBoundingClientRect();
+                const size = Math.max(rect.width, rect.height);
+                const x = event.clientX - rect.left - size / 2;
+                const y = event.clientY - rect.top - size / 2;
+                
+                ripple.style.width = ripple.style.height = size + 'px';
+                ripple.style.left = x + 'px';
+                ripple.style.top = y + 'px';
+                ripple.classList.add('ripple-effect');
+                
+                container.appendChild(ripple);
+                
+                setTimeout(() => {
+                    ripple.remove();
+                }, 600);
+            }
+            
+            // Confetti effect function
+            function createConfetti(button) {
+                const rect = button.getBoundingClientRect();
+                const colors = ['#10B981', '#3B82F6', '#8B5CF6', '#EF4444', '#F59E0B', '#EC4899'];
+                
+                for (let i = 0; i < 50; i++) {
+                    const confetti = document.createElement('div');
+                    confetti.classList.add('confetti');
+                    
+                    // Random position
+                    const left = rect.left + rect.width / 2;
+                    const top = rect.top + rect.height / 2;
+                    
+                    // Random properties
+                    const color = colors[Math.floor(Math.random() * colors.length)];
+                    const size = Math.random() * 10 + 5;
+                    const duration = Math.random() * 2 + 3;
+                    const delay = Math.random() * 0.5;
+                    
+                    confetti.style.backgroundColor = color;
+                    confetti.style.width = `${size}px`;
+                    confetti.style.height = `${size}px`;
+                    confetti.style.left = `${left}px`;
+                    confetti.style.top = `${top}px`;
+                    confetti.style.animation = `confetti ${duration}s ease-in-out ${delay}s forwards`;
+                    confetti.style.setProperty('--random-x', (Math.random() * 200 - 100) + 'px');
+                    
+                    confettiContainer.appendChild(confetti);
+                    
+                    // Remove after animation
+                    setTimeout(() => {
+                        confetti.remove();
+                    }, (duration + delay) * 1000);
+                }
+            }
+            
+            // Update time and date
+            function updateTime() {
+                const now = new Date();
+                const timeElement = document.getElementById('currentTime');
+                const dateElement = document.getElementById('currentDate');
+                
+                const hours = now.getHours().toString().padStart(2, '0');
+                const minutes = now.getMinutes().toString().padStart(2, '0');
+                const seconds = now.getSeconds().toString().padStart(2, '0');
+                
+                // Animate time change
+                if (timeElement.textContent !== `${hours}:${minutes}`) {
+                    timeElement.style.transform = 'scale(1.1)';
+                    setTimeout(() => {
+                        timeElement.style.transform = 'scale(1)';
+                    }, 150);
+                }
+                
+                timeElement.textContent = `${hours}:${minutes}`;
+                
+                // Date
+                const days = ['Yakshanba', 'Dushanba', 'Seshanba', 'Chorshanba', 'Payshanba', 'Juma', 'Shanba'];
+                const months = ['Yanvar', 'Fevral', 'Mart', 'Aprel', 'May', 'Iyun', 'Iyul', 'Avgust', 'Sentabr', 'Oktabr', 'Noyabr', 'Dekabr'];
+                
+                const dayName = days[now.getDay()];
+                const day = now.getDate();
+                const month = months[now.getMonth()];
+                const year = now.getFullYear();
+                
+                dateElement.textContent = `${day} ${month} ${year}, ${dayName}`;
+                
+                // Update work hours if checked in
+                if (isCheckedIn && checkinTime) {
+                    const diffMs = now - checkinTime;
+                    const diffHrs = Math.floor(diffMs / (1000 * 60 * 60));
+                    const diffMins = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
+                    
+                    workHoursElement.textContent = `${diffHrs} soat ${diffMins} min`;
+                    
+                    // Update work hours element with animation
+                    workHoursElement.style.color = diffHrs >= 8 ? '#22C55E' : '#F59E0B';
+                }
+            }
+            
+            // Create notification
+            function createNotification(message, type = 'success') {
+                const colors = {
+                    'success': 'bg-gradient-to-r from-green-500 to-emerald-600',
+                    'error': 'bg-gradient-to-r from-red-500 to-pink-600',
+                    'info': 'bg-gradient-to-r from-blue-500 to-indigo-600',
+                    'warning': 'bg-gradient-to-r from-amber-500 to-orange-600'
+                };
+                
+                const icon = {
+                    'success': 'ri-checkbox-circle-fill',
+                    'error': 'ri-error-warning-fill',
+                    'info': 'ri-information-fill',
+                    'warning': 'ri-alert-fill'
+                };
+                
+                const notification = document.createElement('div');
+                notification.className = `fixed top-20 left-4 right-4 ${colors[type]} text-white px-4 py-4 rounded-xl shadow-2xl z-50 transition-all duration-300 animate-slide-in`;
+                notification.innerHTML = `
+                    <div class="flex items-center">
+                        <i class="${icon[type]} text-2xl mr-3"></i>
+                        <div class="flex-1">
+                            <p class="font-medium">${message}</p>
+                            <p class="text-xs opacity-90 mt-1">${new Date().toLocaleTimeString('uz-UZ', {hour: '2-digit', minute:'2-digit'})}</p>
+                        </div>
+                        <button class="ml-2 text-xl opacity-80 hover:opacity-100" id="closeNotification">
+                            <i class="ri-close-line"></i>
+                        </button>
+                    </div>
+                `;
+                
+                document.body.appendChild(notification);
+                
+                // Close button
+                notification.querySelector('#closeNotification').addEventListener('click', () => {
+                    notification.remove();
+                });
+                
+                // Auto remove
+                setTimeout(() => {
+                    if (notification.parentNode) {
+                        notification.style.transform = 'translateY(-20px)';
+                        notification.style.opacity = '0';
+                        setTimeout(() => {
+                            if (notification.parentNode) notification.remove();
+                        }, 300);
+                    }
+                }, 4000);
+            }
+            
+            // Add activity to history
+            function addActivity(type, time) {
+                if (emptyActivities.parentNode) {
+                    emptyActivities.remove();
+                }
+                
+                const activity = document.createElement('div');
+                activity.className = 'flex items-center justify-between py-3 border-b border-gray-100 last:border-b-0';
+                
+                const icon = type === 'checkin' ? 
+                    '<i class="ri-login-circle-line text-green-500 text-xl"></i>' : 
+                    '<i class="ri-logout-circle-line text-red-500 text-xl"></i>';
+                
+                const text = type === 'checkin' ? 'Kirish' : 'Chiqish';
+                const color = type === 'checkin' ? 'text-green-600' : 'text-red-600';
+                
+                activity.innerHTML = `
+                    <div class="flex items-center">
+                        <div class="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center mr-3">
+                            ${icon}
+                        </div>
+                        <div>
+                            <p class="font-medium text-gray-900">${text} qilindi</p>
+                            <p class="text-sm text-gray-500">${time}</p>
+                        </div>
+                    </div>
+                    <span class="font-semibold ${color}">${new Date().toLocaleTimeString('uz-UZ', {hour: '2-digit', minute:'2-digit'})}</span>
+                `;
+                
+                // Add with animation
+                activity.style.opacity = '0';
+                activity.style.transform = 'translateY(10px)';
+                activityList.prepend(activity);
+                
+                setTimeout(() => {
+                    activity.style.transition = 'all 0.3s ease-out';
+                    activity.style.opacity = '1';
+                    activity.style.transform = 'translateY(0)';
+                }, 10);
+                
+                // Store activity
+                activities.push({type, time: new Date().toLocaleTimeString('uz-UZ', {hour: '2-digit', minute:'2-digit'})});
+                
+                // Limit activities to 10
+                if (activities.length > 10) {
+                    activities.shift();
+                    if (activityList.children.length > 10) {
+                        activityList.removeChild(activityList.lastChild);
+                    }
+                }
+            }
+            
+         
+            
+           
+            
+            
+            // Initialize
+            updateTime();
+            setInterval(updateTime, 1000);
+            updateStatus();
+            
+            // Add sample activities for demo
+            setTimeout(() => {
+                if (activities.length === 0) {
+                    const sampleTime = new Date();
+                    sampleTime.setHours(9, 0);
+                    
+                    addActivity('checkin', sampleTime.toLocaleTimeString('uz-UZ', {hour: '2-digit', minute:'2-digit'}));
+                    
+                    sampleTime.setHours(13, 30);
+                    addActivity('checkout', sampleTime.toLocaleTimeString('uz-UZ', {hour: '2-digit', minute:'2-digit'}));
+                    
+                    sampleTime.setHours(14, 0);
+                    addActivity('checkin', sampleTime.toLocaleTimeString('uz-UZ', {hour: '2-digit', minute:'2-digit'}));
+                }
+            }, 1000);
+        });
+    </script>
+<script>
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register("{% static 'service-worker.js' %}");
+    }
+    </script>
+    
+
+</body>
+
+</html>

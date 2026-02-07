@@ -1,0 +1,1159 @@
+<!DOCTYPE html>
+<html lang="uz">
+    {% load static %}
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
+    <title>Kunlik Davomat Hisoboti</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="manifest" href="{% static 'manifest.json' %}">
+<meta name="theme-color" content="#0d6efd">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <style>
+        :root {
+            --yashil-asosiy: #2E7D32;          /* Kuchli yashil */
+            --yashil-ochiq: #4CAF50;           /* Asosiy yashil */
+            --yashil-yorqin: #66BB6A;          /* Yorqin yashil */
+            --yashil-ochroq: #81C784;          /* Och yashil */
+            --yashil-eng-ochiq: #C8E6C9;       /* Juda och yashil */
+            --yashil-gradient: linear-gradient(135deg, #2E7D32 0%, #4CAF50 100%);
+            --yashil-light-gradient: linear-gradient(135deg, #66BB6A 0%, #81C784 100%);
+            --sariq: #FFC107;
+            --kok: #2196F3;
+            --qizil: #F44336;
+            --kok-gradient: linear-gradient(135deg, #2196F3 0%, #21CBF3 100%);
+            --sariq-gradient: linear-gradient(135deg, #FFC107 0%, #FF9800 100%);
+            --qizil-gradient: linear-gradient(135deg, #F44336 0%, #E53935 100%);
+            --soya: 0 6px 25px rgba(46, 125, 50, 0.15);
+            --soya-kuchli: 0 10px 40px rgba(46, 125, 50, 0.25);
+            --otish: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            --radius: 16px;
+        }
+        
+        /* Planshet uchun o'lchamlar */
+        @media (min-width: 768px) and (max-width: 1024px) {
+            :root {
+                --radius: 20px;
+                --soya: 0 8px 30px rgba(46, 125, 50, 0.2);
+            }
+        }
+        
+        body {
+            background: linear-gradient(135deg, #f8fff8 0%, #f0f8f0 100%);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            padding: 15px;
+            min-height: 100vh;
+            color: #2E7D32;
+        }
+        
+        /* Container */
+        .container-fluid {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 10px;
+        }
+        
+        /* Asosiy yashil header */
+        .yashil-header {
+            background: var(--yashil-gradient);
+            color: white;
+            border-radius: var(--radius);
+            padding: 30px;
+            margin-bottom: 25px;
+            box-shadow: var(--soya);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .yashil-header::before {
+            content: '';
+            position: absolute;
+            top: -50px;
+            right: -50px;
+            width: 250px;
+            height: 250px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+        }
+        
+        .yashil-header::after {
+            content: '';
+            position: absolute;
+            bottom: -40px;
+            left: -40px;
+            width: 180px;
+            height: 180px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 50%;
+        }
+        
+        /* Leaf pattern */
+        .leaf-pattern {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            opacity: 0.1;
+            background-image: url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M50 20 Q60 10 70 20 Q80 30 70 40 Q60 50 50 40 Q40 30 30 20 Q20 10 30 20 Z' fill='%23FFFFFF'/%3E%3C/svg%3E");
+            background-size: 80px;
+        }
+        
+        /* Asosiy kartalar */
+        .yashil-karta {
+            background: white;
+            border-radius: var(--radius);
+            box-shadow: var(--soya);
+            border: 2px solid var(--yashil-eng-ochiq);
+            transition: var(--otish);
+            height: 100%;
+            overflow: hidden;
+            margin-bottom: 20px;
+        }
+        
+        .yashil-karta:hover {
+            box-shadow: var(--soya-kuchli);
+            border-color: var(--yashil-ochiq);
+            transform: translateY(-3px);
+        }
+        
+        /* Statistik kartalar */
+        .stat-karta {
+            border-radius: var(--radius);
+            padding: 25px;
+            color: white;
+            box-shadow: var(--soya);
+            transition: var(--otish);
+            height: 100%;
+            min-height: 180px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .stat-karta::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(45deg, transparent 60%, rgba(255,255,255,0.1) 100%);
+        }
+        
+        .stat-karta:active {
+            transform: scale(0.98);
+        }
+        
+        .stat-kelgan {
+            background: var(--yashil-gradient);
+        }
+        
+        .stat-kechikkan {
+            background: var(--sariq-gradient);
+        }
+        
+        .stat-erta {
+            background: var(--kok-gradient);
+        }
+        
+        .stat-kelmagan {
+            background: var(--qizil-gradient);
+        }
+        
+        /* Stat icon */
+        .stat-icon {
+            width: 70px;
+            height: 70px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 32px;
+            margin-bottom: 15px;
+            backdrop-filter: blur(5px);
+        }
+        
+        /* Card header */
+        .karta-header {
+            background: linear-gradient(135deg, var(--yashil-eng-ochiq) 0%, #E8F5E9 100%);
+            border-bottom: 2px solid var(--yashil-ochroq);
+            padding: 22px 25px;
+            font-weight: 700;
+            color: var(--yashil-asosiy);
+        }
+        
+        .karta-header h5 {
+            margin: 0;
+            font-size: 1.3rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        /* Davomat kartalari */
+        .davomat-karta {
+            background: white;
+            border-radius: 12px;
+            margin-bottom: 12px;
+            box-shadow: 0 3px 12px rgba(46, 125, 50, 0.08);
+            transition: var(--otish);
+            border-left: 4px solid transparent;
+            padding: 18px;
+            border: 1px solid var(--yashil-eng-ochiq);
+        }
+        
+        .davomat-karta:hover {
+            transform: translateX(8px);
+            box-shadow: 0 5px 20px rgba(46, 125, 50, 0.15);
+            border-left-color: var(--yashil-ochiq);
+        }
+        
+        /* Status badge */
+        .holat-badge {
+            padding: 8px 18px;
+            border-radius: 25px;
+            font-size: 14px;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: var(--yashil-eng-ochiq);
+            color: var(--yashil-asosiy);
+            border: 2px solid transparent;
+        }
+        
+        .holat-vaqtida {
+            background: #E8F5E9;
+            color: #1B5E20;
+            border-color: #C8E6C9;
+        }
+        
+        .holat-kechikdi {
+            background: #FFF3E0;
+            color: #E65100;
+            border-color: #FFE0B2;
+        }
+        
+        .holat-erta {
+            background: #E3F2FD;
+            color: #0D47A1;
+            border-color: #BBDEFB;
+        }
+        
+        .holat-dam {
+            background: #F5F5F5;
+            color: #424242;
+            border-color: #E0E0E0;
+        }
+        
+        /* Profile image */
+        .profil-rasm {
+            width: 55px;
+            height: 55px;
+            border-radius: 12px;
+            object-fit: cover;
+            border: 3px solid var(--yashil-eng-ochiq);
+        }
+        
+        .profil-placeholder {
+            width: 55px;
+            height: 55px;
+            border-radius: 12px;
+            background: var(--yashil-gradient);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 22px;
+            color: white;
+            border: 3px solid var(--yashil-eng-ochiq);
+        }
+        
+        /* Tugmalar */
+        .yashil-tugma {
+            background: var(--yashil-gradient);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            padding: 14px 24px;
+            font-weight: 600;
+            font-size: 16px;
+            transition: var(--otish);
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            box-shadow: 0 4px 15px rgba(46, 125, 50, 0.3);
+        }
+        
+        .yashil-tugma:hover {
+            background: var(--yashil-light-gradient);
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(46, 125, 50, 0.4);
+        }
+        
+        .yashil-tugma:active {
+            transform: scale(0.98);
+        }
+        
+        .yashil-tugma-ochiq {
+            background: white;
+            color: var(--yashil-asosiy);
+            border: 2px solid var(--yashil-ochiq);
+        }
+        
+        .yashil-tugma-ochiq:hover {
+            background: var(--yashil-eng-ochiq);
+            color: var(--yashil-asosiy);
+        }
+        
+        /* Nav tabs */
+        .nav-yashil {
+            display: flex;
+            background: white;
+            border-radius: var(--radius);
+            padding: 8px;
+            margin-bottom: 25px;
+            box-shadow: var(--soya);
+            border: 2px solid var(--yashil-eng-ochiq);
+        }
+        
+        .nav-yashil-tab {
+            flex: 1;
+            text-align: center;
+            padding: 18px;
+            border-radius: 12px;
+            background: transparent;
+            border: none;
+            font-weight: 600;
+            color: #666;
+            transition: var(--otish);
+            cursor: pointer;
+            font-size: 16px;
+        }
+        
+        .nav-yashil-tab.aktiv {
+            background: var(--yashil-gradient);
+            color: white;
+            box-shadow: 0 4px 15px rgba(46, 125, 50, 0.3);
+        }
+        
+        /* Form elementlar */
+        .yashil-form-control {
+            border-radius: 12px;
+            border: 2px solid var(--yashil-ochroq);
+            padding: 14px 18px;
+            font-size: 16px;
+            transition: var(--otish);
+            background: white;
+            color: var(--yashil-asosiy);
+        }
+        
+        .yashil-form-control:focus {
+            border-color: var(--yashil-ochiq);
+            box-shadow: 0 0 0 4px rgba(76, 175, 80, 0.2);
+            outline: none;
+        }
+        
+        /* Scroll container */
+        .scroll-yashil {
+            height: 400px;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+            padding-right: 10px;
+        }
+        
+        .scroll-yashil::-webkit-scrollbar {
+            width: 8px;
+        }
+        
+        .scroll-yashil::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 10px;
+        }
+        
+        .scroll-yashil::-webkit-scrollbar-thumb {
+            background: var(--yashil-ochroq);
+            border-radius: 10px;
+        }
+        
+        .scroll-yashil::-webkit-scrollbar-thumb:hover {
+            background: var(--yashil-ochiq);
+        }
+        
+        /* Progress bar */
+        .yashil-progress {
+            height: 8px;
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 4px;
+            overflow: hidden;
+            margin: 15px 0;
+        }
+        
+        .yashil-progress-bar {
+            height: 100%;
+            background: rgba(255, 255, 255, 0.8);
+            border-radius: 4px;
+            transition: width 0.5s ease;
+        }
+        
+        /* Badge */
+        .yashil-badge {
+            background: var(--yashil-gradient);
+            color: white;
+            padding: 6px 16px;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 14px;
+        }
+        
+        /* Grid system */
+        .yashil-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+            margin-bottom: 25px;
+        }
+        
+        /* Masonry layout */
+        .yashil-masonry {
+            column-count: 2;
+            column-gap: 20px;
+        }
+        
+        .yashil-masonry-item {
+            break-inside: avoid;
+            margin-bottom: 20px;
+        }
+        
+        /* Animatsiyalar */
+        @keyframes yashilKirish {
+            from {
+                opacity: 0;
+                transform: translateY(25px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .yashil-kirish {
+            animation: yashilKirish 0.6s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+        }
+        
+        @keyframes yashilPuls {
+            0% {
+                box-shadow: 0 0 0 0 rgba(76, 175, 80, 0.7);
+            }
+            70% {
+                box-shadow: 0 0 0 15px rgba(76, 175, 80, 0);
+            }
+            100% {
+                box-shadow: 0 0 0 0 rgba(76, 175, 80, 0);
+            }
+        }
+        
+        .yashil-puls {
+            animation: yashilPuls 2s infinite;
+        }
+        
+        /* Responsive */
+        @media (max-width: 768px) {
+            .yashil-masonry {
+                column-count: 1;
+            }
+            
+            .yashil-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .yashil-header {
+                padding: 20px;
+            }
+            
+            .stat-karta {
+                min-height: 160px;
+                padding: 20px;
+            }
+        }
+        
+        @media (min-width: 769px) and (max-width: 1024px) {
+            .yashil-masonry {
+                column-count: 2;
+            }
+            
+            .yashil-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .stat-karta {
+                min-height: 200px;
+            }
+        }
+        
+        /* Bottom navigation - planshet/mobil uchun */
+        .pastki-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: white;
+            padding: 12px 15px;
+            box-shadow: 0 -4px 25px rgba(46, 125, 50, 0.15);
+            display: none;
+            z-index: 1000;
+            border-top: 3px solid var(--yashil-ochiq);
+        }
+        
+        @media (max-width: 1024px) {
+            .pastki-nav {
+                display: block;
+            }
+            
+            body {
+                padding-bottom: 80px;
+            }
+        }
+        
+        /* Print optimizatsiya */
+        @media print {
+            .no-print {
+                display: none !important;
+            }
+            
+            .yashil-karta {
+                box-shadow: none !important;
+                border: 2px solid #ddd !important;
+                page-break-inside: avoid;
+            }
+            
+            .pastki-nav {
+                display: none !important;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container-fluid">
+        <!-- Asosiy yashil header -->
+        <div class="yashil-header yashil-kirish">
+            <div class="leaf-pattern"></div>
+            <div class="position-relative" style="z-index: 2;">
+                <div class="row align-items-center">
+                    <div class="col-lg-8 mb-4 mb-lg-0">
+                        <div class="d-flex align-items-center mb-4">
+                            <div class="me-3">
+                                <div class="bg-white p-3 rounded-circle">
+                                    <i class="fas fa-calendar-check fa-2x" style="color: #2E7D32;"></i>
+                                </div>
+                            </div>
+                            <div>
+                                <h1 class="display-5 fw-bold mb-2">
+                                    Kunlik Davomat
+                                </h1>
+                                <p class="mb-0 fs-5 opacity-90">Ish jarayonini yashil rangda kuzating</p>
+                            </div>
+                        </div>
+                        
+                        <div class="d-flex flex-wrap gap-3">
+                            <div class="bg-white px-4 py-2 rounded-pill d-flex align-items-center">
+                                <i class="fas fa-calendar me-2" style="color: #2E7D32;"></i>
+                                <span class="fw-bold" style="color: #2E7D32;">{{ report_date|date:"d.m.Y" }}</span>
+                            </div>
+                            <div class="bg-white px-4 py-2 rounded-pill d-flex align-items-center">
+                                <i class="fas fa-clock me-2" style="color: #2E7D32;"></i>
+                                <span class="fw-bold" style="color: #2E7D32;">{% now "H:i" %}</span>
+                            </div>
+                            <div class="bg-white px-4 py-2 rounded-pill d-flex align-items-center">
+                                <i class="fas fa-users me-2" style="color: #2E7D32;"></i>
+                                <span class="fw-bold" style="color: #2E7D32;">{{ total_employees }} xodim</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-lg-4">
+                        <div class="d-flex justify-content-end gap-2 flex-wrap">
+                         
+                            <a href="/dashboard/" class="yashil-tugma yashil-tugma-ochiq">
+                                <i class="fas fa-tachometer-alt"></i> Dashboard
+                            </a>
+                         
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class=" " style="margin-bottom: 25px;">
+                         
+            <a href="/dashboard/" class="yashil-tugma yashil-tugma-ochiq">
+                <i class="fas fa-tachometer-alt"></i> Dashboard
+            </a>
+            <a href="/weekly-report/" class="yashil-tugma yashil-tugma-ochiq">
+                <i class="fas fa-tachometer-alt"></i> haftalik davomat
+            </a>
+            <a href="/monthly-report/" class="yashil-tugma yashil-tugma-ochiq">
+                <i class="fas fa-tachometer-alt"></i> oylik davomat
+            </a>
+         
+        </div>
+
+        <!-- Filtrlash va navigatsiya -->
+    
+
+        <!-- Asosiy statistika -->
+        <div class="yashil-grid">
+            <!-- Kelgan xodimlar -->
+            <div class="yashil-kirish" style="animation-delay: 0.2s;">
+                <div class="stat-karta stat-kelgan" onclick="showStat('present')">
+                    <div>
+                        <div class="stat-icon">
+                            <i class="fas fa-user-check"></i>
+                        </div>
+                        <h6 class="mb-2 fw-bold">KELGAN XODIMLAR</h6>
+                        <h1 class="display-3 fw-bold mb-3">{{ present_count }}</h1>
+                    </div>
+                    <div>
+                        <div class="yashil-progress">
+                            <div class="yashil-progress-bar" style="width: {{ present_count|default:0|floatformat:0 }}/{{ total_employees|default:1|floatformat:0 }}%"></div>
+                        </div>
+                        <small class="opacity-90">{{ total_employees }} ta xodimdan</small>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Kechikkanlar -->
+            <div class="yashil-kirish" style="animation-delay: 0.3s;">
+                <div class="stat-karta stat-kechikkan" onclick="showStat('late')">
+                    <div>
+                        <div class="stat-icon">
+                            <i class="fas fa-clock"></i>
+                        </div>
+                        <h6 class="mb-2 fw-bold">KECHIKKANLAR</h6>
+                        <h1 class="display-3 fw-bold mb-3">{{ late_count }}</h1>
+                    </div>
+                    <div>
+                        <small class="opacity-90">{{ present_count|default:1 }} ta kelganidan</small>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Erta kelganlar -->
+            <div class="yashil-kirish" style="animation-delay: 0.4s;">
+                <div class="stat-karta stat-erta" onclick="showStat('early')">
+                    <div>
+                        <div class="stat-icon">
+                            <i class="fas fa-bolt"></i>
+                        </div>
+                        <h6 class="mb-2 fw-bold">ERTA KELGANLAR</h6>
+                        <h1 class="display-3 fw-bold mb-3">{{ early_count }}</h1>
+                    </div>
+                    <div>
+                        <small class="opacity-90">{{ present_count|default:1 }} ta kelganidan</small>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Kelmaganlar -->
+            <div class="yashil-kirish" style="animation-delay: 0.5s;">
+                <div class="stat-karta stat-kelmagan" onclick="showStat('absent')">
+                    <div>
+                        <div class="stat-icon">
+                            <i class="fas fa-user-times"></i>
+                        </div>
+                        <h6 class="mb-2 fw-bold">KELMAGANLAR</h6>
+                        <h1 class="display-3 fw-bold mb-3">{{ absent_count }}</h1>
+                    </div>
+                    <div>
+                        <div class="yashil-progress">
+                            <div class="yashil-progress-bar" style="width: {{ absent_count|default:0|floatformat:0 }}/{{ total_employees|default:1|floatformat:0 }}%"></div>
+                        </div>
+                        <small class="opacity-90">{{ total_employees }} ta xodimdan</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Masonry layout - Planshet uchun -->
+        <div class="yashil-masonry">
+            <!-- Kelganlar -->
+            <div class="yashil-masonry-item yashil-kirish" style="animation-delay: 0.6s;">
+                <div class="yashil-karta">
+                    <div class="karta-header d-flex justify-content-between align-items-center">
+                        <h5>
+                            <i class="fas fa-sign-in-alt" style="color: #2E7D32;"></i>
+                            Bugun Kelganlar
+                        </h5>
+                        <span class="yashil-badge">{{ checkins|length }}</span>
+                    </div>
+                    <div class="card-body p-0">
+                        <div class="scroll-yashil">
+                            {% if checkins %}
+                                {% for att in checkins %}
+                                <div class="davomat-karta mx-3 mt-3" >
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div class="d-flex align-items-center" style="min-width: 0;">
+                                            {% if att.employee.photo %}
+                                            <img src="{{ att.employee.photo.url }}" class="profil-rasm me-3">
+                                            {% else %}
+                                            <div class="profil-placeholder me-3">
+                                                <i class="fas fa-user"></i>
+                                            </div>
+                                            {% endif %}
+                                            <div style="min-width: 0;">
+                                                <strong class="d-block text-truncate">{{ att.employee.full_name }}</strong>
+                                                <small class="text-muted">{{ att.employee.position }}</small>
+                                            </div>
+                                        </div>
+                                        <div class="text-end ms-2">
+                                            <div class="fw-bold fs-5 mb-1" style="color: #2E7D32;">{{ att.time|time:"H:i" }}</div>
+                                            <span class="holat-badge holat-{{ att.status }}">
+                                                {% if att.status == 'ontime' %}
+                                                <i class="fas fa-check-circle"></i> Vaqtida
+                                                <!-- 160-qator atrofidagi kechikish qismini o'zgartiring -->
+{% elif att.status == 'late' %}
+<i class="fas fa-clock"></i>
+<span class="late-time" data-minutes="{{ att.late_minutes }}">
+    {{ att.late_minutes }} daq
+</span>
+{% elif att.status == 'early' %}
+                                                <i class="fas fa-bolt"></i> Erta
+                                                {% elif att.status == 'day_off' %}
+                                                <i class="fas fa-umbrella-beach"></i> Dam
+                                                {% endif %}
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            {% else %}
+                                <div class="text-center py-5">
+                                    <i class="fas fa-user-clock fa-4x mb-4" style="color: #C8E6C9;"></i>
+                                    <h5 class="text-muted mb-2">Hali kelganlar yo'q</h5>
+                                    <p class="text-muted">Xodimlar kelishini kuting...</p>
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Ishda bo'lganlar -->
+            <div class="yashil-masonry-item yashil-kirish" style="animation-delay: 0.7s;">
+                <div class="yashil-karta">
+                    <div class="karta-header d-flex justify-content-between align-items-center">
+                        <h5>
+                            <i class="fas fa-briefcase" style="color: #2196F3;"></i>
+                            Ishda Bo'lganlar
+                        </h5>
+                        <span class="yashil-badge" style="background: var(--kok-gradient);">{{ present_employees|length }}</span>
+                    </div>
+                    <div class="card-body p-0">
+                        <div class="scroll-yashil">
+                            {% if present_employees %}
+                                {% for emp in present_employees %}
+                                <div class="davomat-karta mx-3 mt-3" >
+                                    <div class="d-flex align-items-center">
+                                        {% if emp.photo %}
+                                        <img src="{{ emp.photo.url }}" class="profil-rasm me-3">
+                                        {% else %}
+                                        <div class="profil-placeholder me-3">
+                                            <i class="fas fa-user"></i>
+                                        </div>
+                                        {% endif %}
+                                        <div style="min-width: 0; flex-grow: 1;">
+                                            <strong class="d-block text-truncate">{{ emp.full_name }}</strong>
+                                            <small class="text-muted">{{ emp.position }}</small>
+                                        </div>
+                                        <div class="ms-auto">
+                                            <span class="holat-badge holat-vaqtida">
+                                                <i class="fas fa-circle fa-xs"></i> Faol
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            {% else %}
+                                <div class="text-center py-5">
+                                    <i class="fas fa-door-open fa-4x mb-4" style="color: #C8E6C9;"></i>
+                                    <h5 class="text-muted mb-2">Ishda xodimlar yo'q</h5>
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Chiqganlar -->
+       
+            <!-- Kelmaganlar -->
+            <div class="yashil-masonry-item yashil-kirish" style="animation-delay: 0.9s;">
+                <div class="yashil-karta">
+                    <div class="karta-header d-flex justify-content-between align-items-center">
+                        <h5>
+                            <i class="fas fa-user-times" style="color: #F44336;"></i>
+                            Kelmagan Xodimlar
+                        </h5>
+                        <span class="yashil-badge" style="background: var(--qizil-gradient);">{{ absent_employees|length }}</span>
+                    </div>
+                    <div class="card-body p-0">
+                        <div class="scroll-yashil">
+                            {% if absent_employees %}
+                                {% for emp in absent_employees %}
+                                <div class="davomat-karta mx-3 mt-3" >
+                                    <div class="d-flex align-items-center">
+                                        {% if emp.photo %}
+                                        <img src="{{ emp.photo.url }}" class="profil-rasm me-3">
+                                        {% else %}
+                                        <div class="profil-placeholder me-3">
+                                            <i class="fas fa-user"></i>
+                                        </div>
+                                        {% endif %}
+                                        <div style="min-width: 0; flex-grow: 1;">
+                                            <strong class="d-block text-truncate">{{ emp.full_name }}</strong>
+                                            <small class="text-muted">{{ emp.position }}</small>
+                                            <span class="holat-badge" style="background: #FFEBEE; color: #C62828; border-color: #FFCDD2;">
+                                                <i class="fas fa-ban"></i> Kelmadi
+                                            </span>
+                                        </div>
+                                    
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            {% else %}
+                                <div class="text-center py-5">
+                                    <div class="mb-4">
+                                        <i class="fas fa-check-circle fa-4x" style="color: #4CAF50;"></i>
+                                    </div>
+                                    <h4 class="fw-bold" style="color: #2E7D32;">Barcha xodimlar kelgan! 🎉</h4>
+                                    <p class="text-muted">Mukammal ish kuni</p>
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Pastki navigatsiya - planshet va mobil uchun -->
+    <div class="pastki-nav">
+        <div class="container-fluid">
+            <div class="row g-2">
+                <div class="col">
+                    <button class="btn w-100 d-flex flex-column align-items-center py-2" onclick="window.print()" 
+                            style="background: #E8F5E9; color: #2E7D32; border: 2px solid #C8E6C9; border-radius: 12px;">
+                        <i class="fas fa-print fa-lg mb-1"></i>
+                        <small class="fw-bold">Chop etish</small>
+                    </button>
+                </div>
+                <div class="col">
+                    <a href="/attendance-report/" class="btn w-100 d-flex flex-column align-items-center py-2"
+                       style="background: #E8F5E9; color: #2E7D32; border: 2px solid #C8E6C9; border-radius: 12px;">
+                        <i class="fas fa-chart-bar fa-lg mb-1"></i>
+                        <small class="fw-bold">Hisobot</small>
+                    </a>
+                </div>
+                <div class="col">
+                    <button class="btn w-100 d-flex flex-column align-items-center py-2" onclick="refreshData()"
+                            style="background: var(--yashil-gradient); color: white; border: none; border-radius: 12px;">
+                        <i class="fas fa-sync-alt fa-lg mb-1"></i>
+                        <small class="fw-bold">Yangilash</small>
+                    </button>
+                </div>
+                <div class="col">
+                    <button class="btn w-100 d-flex flex-column align-items-center py-2" onclick="exportReport()"
+                            style="background: #2196F3; color: white; border: none; border-radius: 12px;">
+                        <i class="fas fa-download fa-lg mb-1"></i>
+                        <small class="fw-bold">Export</small>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        
+        // Planshet uchun optimallashtirilgan JavaScript
+        document.addEventListener('DOMContentLoaded', function() {
+            // Touch uchun optimallashtirish
+            document.addEventListener('touchstart', function() {}, {passive: true});
+            
+            // Elementlarga touch effektlari
+            const touchElements = document.querySelectorAll('.attendance-card, .stat-card, .btn');
+            touchElements.forEach(el => {
+                el.addEventListener('touchstart', function() {
+                    this.classList.add('active');
+                });
+                
+                el.addEventListener('touchend', function() {
+                    this.classList.remove('active');
+                });
+            });
+            
+            // Masonry layoutni sozlash
+            function adjustMasonry() {
+                const masonry = document.querySelector('.masonry-grid');
+                if (window.innerWidth <= 768) {
+                    masonry.style.columnCount = 1;
+                } else {
+                    masonry.style.columnCount = 2;
+                }
+            }
+            
+            adjustMasonry();
+            window.addEventListener('resize', adjustMasonry);
+            
+            // Progress barlarni yangilash
+            function updateProgressBars() {
+                const present = {{ present_count|default:0 }};
+                const total = {{ total_employees|default:1 }};
+                const absent = {{ absent_count|default:0 }};
+                
+                const presentPercent = (present / total) * 100;
+                const absentPercent = (absent / total) * 100;
+                
+                document.querySelectorAll('.progress-bar').forEach((bar, index) => {
+                    if (index === 0) {
+                        bar.style.width = presentPercent + '%';
+                    } else if (index === 1) {
+                        bar.style.width = absentPercent + '%';
+                    }
+                });
+            }
+            
+            updateProgressBars();
+            
+         
+            
+            // Pull-to-refresh funksiyasi
+            let touchStartY = 0;
+            document.addEventListener('touchstart', e => {
+                touchStartY = e.touches[0].clientY;
+            });
+            
+            document.addEventListener('touchmove', e => {
+                const touchY = e.touches[0].clientY;
+                const diff = touchY - touchStartY;
+                
+                if (diff > 100 && window.scrollY === 0) {
+                    refreshData();
+                }
+            });
+            
+            // Dark mode detektsiyasi
+            if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+                document.body.classList.add('dark-mode');
+            }
+        });
+        
+        // Funksiyalar
+        function toggleFullscreen() {
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen().catch(err => {
+                    console.log(`Fullscreen error: ${err.message}`);
+                });
+            } else {
+                if (document.exitFullscreen) {
+                    document.exitFullscreen();
+                }
+            }
+        }
+        
+        function refreshData() {
+            const refreshBtn = document.querySelector('button[onclick="refreshData()"]');
+            if (refreshBtn) {
+                refreshBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i><span class="d-block small">Yangilanmoqda...</span>';
+                refreshBtn.disabled = true;
+            }
+            
+            setTimeout(() => {
+                location.reload();
+            }, 1000);
+        }
+        
+        function filterDepartment(select) {
+            const department = select.value;
+            console.log('Filter by department:', department);
+            // Bu yerda filtrlash logikasi bo'ladi
+        }
+        
+       
+        function sendReminder(employeeId) {
+            if (confirm('Bu xodimga eslatma yuborilsinmi?')) {
+                console.log('Send reminder to:', employeeId);
+                // API chaqiruvi bo'ladi
+            }
+        }
+        
+        function exportReport() {
+            // Hisobotni export qilish
+            console.log('Exporting report...');
+        }
+        
+        // Statistika kartalarini batafsil ko'rsatish
+        function showPresentDetails() {
+            console.log('Show present details');
+        }
+        
+        function showLateDetails() {
+            console.log('Show late details');
+        }
+        
+        function showEarlyDetails() {
+            console.log('Show early details');
+        }
+        
+        function showAbsentDetails() {
+            console.log('Show absent details');
+        }
+        
+        function showTab(tabName) {
+            document.querySelectorAll('.nav-tab-planshet').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            event.target.classList.add('active');
+            console.log('Switch to tab:', tabName);
+        }
+        
+        // Offline mode uchun
+        window.addEventListener('online', () => {
+            showToast('Internet ulandi', 'success');
+        });
+        
+        window.addEventListener('offline', () => {
+            showToast('Internet uzildi', 'warning');
+        });
+        
+        function showToast(message, type) {
+            // Toast notification ko'rsatish
+            console.log(`${type}: ${message}`);
+        }
+    </script>
+    <script>
+        // Kechikish vaqtlarini formatlash
+        document.addEventListener('DOMContentLoaded', function() {
+            function formatLateTime(minutes) {
+                if (minutes >= 60) {
+                    const hours = Math.floor(minutes / 60);
+                    const mins = minutes % 60;
+                    if (hours > 0) {
+                        return `${hours}s ${mins}da`;
+                    }
+                }
+                return `${minutes}da`;
+            }
+            
+            // Barcha kechikish vaqtlarini formatlash
+            document.querySelectorAll('.late-time').forEach(function(element) {
+                const minutes = parseInt(element.getAttribute('data-minutes'));
+                if (!isNaN(minutes)) {
+                    element.textContent = formatLateTime(minutes);
+                }
+            });
+            
+            // Ishda bo'lgan xodimlarni aniqlash
+            const now = new Date();
+            const currentHour = now.getHours();
+            
+            document.querySelectorAll('.attendance-card').forEach(card => {
+                const timeElement = card.querySelector('.attendance-time');
+                if (timeElement) {
+                    const timeText = timeElement.textContent.trim();
+                    if (timeText.includes(':')) {
+                        const [hour, minute] = timeText.split(':').map(Number);
+                        if (currentHour - hour > 8) {
+                            card.classList.add('long-working');
+                        }
+                    }
+                }
+            });
+            
+            // Stat kartalariga click event
+            document.querySelectorAll('.stat-karta').forEach(card => {
+                card.addEventListener('click', function() {
+                    const type = this.classList.contains('stat-kelgan') ? 'present' :
+                                this.classList.contains('stat-kechikkan') ? 'late' :
+                                this.classList.contains('stat-erta') ? 'early' : 'absent';
+                    showStatDetails(type);
+                });
+            });
+            
+            // Scroll effektlari
+            const scrollElements = document.querySelectorAll('.scroll-yashil');
+            scrollElements.forEach(element => {
+                element.addEventListener('scroll', function() {
+                    if (this.scrollTop > 10) {
+                        this.classList.add('scrolled');
+                    } else {
+                        this.classList.remove('scrolled');
+                    }
+                });
+            });
+            
+            // Progress bar animatsiyasi
+            function animateProgressBars() {
+                document.querySelectorAll('.yashil-progress-bar').forEach(bar => {
+                    const targetWidth = bar.style.width;
+                    bar.style.width = '0%';
+                    setTimeout(() => {
+                        bar.style.width = targetWidth;
+                    }, 300);
+                });
+            }
+            
+            setTimeout(animateProgressBars, 500);
+        });
+        
+        function showStatDetails(type) {
+            let title = '';
+            let content = '';
+            
+            switch(type) {
+                case 'present':
+                    title = 'Kelgan Xodimlar';
+                    content = 'Bugun {{ present_count }} ta xodim kelgan. Bu umumiy xodimlarning {{ present_percent|default:"0" }}% ni tashkil qiladi.';
+                    break;
+                case 'late':
+                    title = 'Kechikkan Xodimlar';
+                    content = '{{ late_count }} ta xodim kechikkan. Kechikishlar umumiy kelganlarning {{ late_percent|default:"0" }}% ni tashkil qiladi.';
+                    break;
+                case 'early':
+                    title = 'Erta Kelgan Xodimlar';
+                    content = '{{ early_count }} ta xodim ish joyiga vaqtidan oldin kelgan.';
+                    break;
+                case 'absent':
+                    title = 'Kelmagan Xodimlar';
+                    content = '{{ absent_count }} ta xodim bugun kelmagan. Bu umumiy xodimlarning {{ absent_percent|default:"0" }}% ni tashkil qiladi.';
+                    break;
+            }
+            
+            // Modal ko'rsatish
+            alert(`${title}\n\n${content}`);
+        }
+        
+      
+        function exportReport() {
+            // PDF yoki Excel formatida export qilish
+            const date = '{{ report_date|date:"Y-m-d" }}';
+            window.open(`/export-daily-report/?date=${date}`, '_blank');
+        }
+    </script>
+<script>
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register("{% static 'service-worker.js' %}");
+    }
+    </script>
+    
+
+
+</body>
+</html>

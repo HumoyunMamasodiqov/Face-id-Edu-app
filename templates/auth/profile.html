@@ -1,0 +1,74 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h4><i class="fas fa-user-circle"></i> Profil</h4>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-4 text-center">
+                            <div class="mb-3">
+                                <i class="fas fa-user-circle fa-6x text-primary"></i>
+                            </div>
+                            <h4>{{ user.username }}</h4>
+                            <p class="text-muted">
+                                {% if user.is_superuser %}
+                                    <span class="badge bg-danger">Super Admin</span>
+                                {% elif user.is_staff %}
+                                    <span class="badge bg-warning">Admin</span>
+                                {% else %}
+                                    <span class="badge bg-info">Foydalanuvchi</span>
+                                {% endif %}
+                            </p>
+                        </div>
+                        <div class="col-md-8">
+                            <div class="mb-3">
+                                <strong>Ism:</strong> {{ user.first_name|default:"Kiritilmagan" }}
+                            </div>
+                            <div class="mb-3">
+                                <strong>Familiya:</strong> {{ user.last_name|default:"Kiritilmagan" }}
+                            </div>
+                            <div class="mb-3">
+                                <strong>Email:</strong> {{ user.email|default:"Kiritilmagan" }}
+                            </div>
+                            <div class="mb-3">
+                                <strong>Ro'yxatdan o'tgan:</strong> {{ user.date_joined|date:"d.m.Y H:i" }}
+                            </div>
+                            <div class="mb-3">
+                                <strong>Oxirgi kirish:</strong> {{ user.last_login|date:"d.m.Y H:i"|default:"Hali kirilmagan" }}
+                            </div>
+                            <div class="mb-3">
+                                <strong>Holat:</strong>
+                                {% if user.is_active %}
+                                    <span class="badge bg-success">Faol</span>
+                                {% else %}
+                                    <span class="badge bg-danger">Nofaol</span>
+                                {% endif %}
+                            </div>
+                            
+                            <div class="mt-4">
+                                <a href="{% url 'dashboard' %}" class="btn btn-primary">
+                                    <i class="fas fa-home"></i> Dashboard
+                                </a>
+                                {% if user.is_superuser %}
+                                <a href="{% url 'admin_dashboard' %}" class="btn btn-warning">
+                                    <i class="fas fa-cog"></i> Admin Panel
+                                </a>
+                                {% endif %}
+                                <a href="{% url 'logout' %}" class="btn btn-danger float-end">
+                                    <i class="fas fa-sign-out-alt"></i> Chiqish
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

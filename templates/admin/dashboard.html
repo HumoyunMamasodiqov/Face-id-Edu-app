@@ -1,0 +1,575 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container-fluid main-content mt-3">
+    <!-- Sana mobil ko'rinishi -->
+    <div class="d-block d-sm-none text-center mb-3">
+        <div class="date-display">
+            <i class="fas fa-calendar-alt me-2"></i>
+            <span id="currentDateMobile">{{ today|date:"d.m.Y" }}</span>
+        </div>
+    </div>
+    
+    <!-- Statistikalar -->
+    <div class="row">
+        <div class="col-6">
+            <div class="stat-card card border-start border-primary">
+                <div class="card-body p-3">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="text-muted mb-1">Foydalanuvchilar</h6>
+                            <h3 class="mb-0">{{ total_users }}</h3>
+                            <small class="text-success">
+                                <i class="fas fa-circle me-1"></i> {{ active_users }} faol
+                            </small>
+                        </div>
+                        <div class="card-icon bg-primary bg-opacity-10 text-primary">
+                            <i class="fas fa-users"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-6">
+            <div class="stat-card card border-start border-success">
+                <div class="card-body p-3">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="text-muted mb-1">Xodimlar</h6>
+                            <h3 class="mb-0">{{ total_employees }}</h3>
+                            <small class="text-info">
+                                <i class="fas fa-user-clock me-1"></i> {{ today_checkins.count }} kelgan
+                            </small>
+                        </div>
+                        <div class="card-icon bg-success bg-opacity-10 text-success">
+                            <i class="fas fa-user-tie"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-6">
+            <div class="stat-card card border-start border-warning">
+                <div class="card-body p-3">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="text-muted mb-1">Adminlar</h6>
+                            <h3 class="mb-0">{{ admin_count }}</h3>
+                            <small class="text-warning">
+                                <i class="fas fa-user-shield me-1"></i> tizim
+                            </small>
+                        </div>
+                        <div class="card-icon bg-warning bg-opacity-10 text-warning">
+                            <i class="fas fa-user-shield"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-6">
+            <div class="stat-card card border-start border-danger">
+                <div class="card-body p-3">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="text-muted mb-1">Kechikishlar</h6>
+                            <h3 class="mb-0">{{ late_today.count }}</h3>
+                            <small class="text-danger">
+                                <i class="fas fa-exclamation-triangle me-1"></i> bugun
+                            </small>
+                        </div>
+                        <div class="card-icon bg-danger bg-opacity-10 text-danger">
+                            <i class="fas fa-clock"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Tezkor amallar -->
+    <div class="mt-3 mb-3">
+        <h5 class="section-title">
+            <i class="fas fa-bolt text-warning"></i> Tezkor Amallar
+        </h5>
+        <div class="row">
+            <div class="col-6">
+                <a href="{% url 'add_user' %}" class="quick-action-btn">
+                    <i class="fas fa-user-plus"></i> Yangi foydalanuvchi
+                </a>
+            </div>
+            <div class="col-6">
+                <a href="{% url 'reports' %}" class="quick-action-btn">
+                    <i class="fas fa-chart-bar"></i> Hisobotlar
+                </a>
+            </div>
+            <div class="col-6">
+                <a href="{% url 'salary_report' %}" class="quick-action-btn">
+                    <i class="fas fa-money-bill-wave"></i> Maosh
+                </a>
+            </div>
+            <div class="col-6">
+                <a href="{% url 'employee_list' %}" class="quick-action-btn">
+                    <i class="fas fa-user-friends"></i> Xodimlar
+                </a>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Foydalanuvchi boshqaruvi -->
+    <div class="mt-4">
+        <h5 class="section-title">
+            <i class="fas fa-user-cog text-primary"></i> Foydalanuvchi Boshqaruvi
+        </h5>
+        <div class="row">
+            <div class="col-6 mb-3">
+                <a href="{% url 'user_list' %}" class="menu-card p-3 text-center">
+                    <div class="menu-icon bg-primary bg-opacity-10 text-primary">
+                        <i class="fas fa-users"></i>
+                    </div>
+                    <h5 class="mb-1">Barcha Foydalanuvchilar</h5>
+                    <p class="text-muted mb-0 small">Tizimdagi barcha foydalanuvchilar</p>
+                </a>
+            </div>
+            
+            <div class="col-6 mb-3">
+                <a href="{% url 'add_user' %}" class="menu-card p-3 text-center">
+                    <div class="menu-icon bg-success bg-opacity-10 text-success">
+                        <i class="fas fa-user-plus"></i>
+                    </div>
+                    <h5 class="mb-1">Yangi Qo'shish</h5>
+                    <p class="text-muted mb-0 small">Yangi foydalanuvchi qo'shish</p>
+                </a>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Hisobotlar -->
+    <div class="mt-4">
+        <h5 class="section-title">
+            <i class="fas fa-chart-line text-success"></i> Davomat va Hisobotlar
+        </h5>
+        <div class="row">
+            <div class="col-6 mb-3">
+                <a href="{% url 'reports' %}" class="menu-card p-3 text-center">
+                    <div class="menu-icon bg-success bg-opacity-10 text-success">
+                        <i class="fas fa-chart-bar"></i>
+                    </div>
+                    <h5 class="mb-1">Davomat Hisoboti</h5>
+                    <p class="text-muted mb-0 small">Kunlik, oylik statistikalar</p>
+                </a>
+            </div>
+            
+            <div class="col-6 mb-3">
+                <a href="{% url 'salary_report' %}" class="menu-card p-3 text-center">
+                    <div class="menu-icon bg-warning bg-opacity-10 text-warning">
+                        <i class="fas fa-money-bill-wave"></i>
+                    </div>
+                    <h5 class="mb-1">Maosh Hisoboti</h5>
+                    <p class="text-muted mb-0 small">Xodimlar maoshlari</p>
+                </a>
+            </div>
+        </div>
+    </div>
+    
+    <!-- So'nggi foydalanuvchilar -->
+    <div class="mt-4">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h5 class="section-title mb-0">
+                <i class="fas fa-history text-info"></i> So'nggi Foydalanuvchilar
+            </h5>
+            <a href="{% url 'user_list' %}" class="btn btn-outline-primary btn-sm">
+                <i class="fas fa-list"></i>
+            </a>
+        </div>
+        
+        {% if recent_users %}
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead>
+                    <tr>
+                        <th>Foydalanuvchi</th>
+                        <th>Holati</th>
+                        <th>Sana</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for user in recent_users %}
+                    <tr>
+                        <td>
+                            <div class="d-flex align-items-center">
+                                <div class="user-avatar me-2" style="background-color: {% cycle '#0d6efd' '#198754' '#dc3545' '#0dcaf0' '#6f42c1' %};">{{ user.username|first|upper }}</div>
+                                <div>
+                                    <div class="fw-medium">{{ user.username }}</div>
+                                    <small class="text-muted">
+                                        {% if user.first_name or user.last_name %}
+                                            {{ user.first_name }} {{ user.last_name }}
+                                        {% else %}
+                                            Ismi kiritilmagan
+                                        {% endif %}
+                                    </small>
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            {% if user.is_active %}
+                                <span class="status-badge bg-success">Faol</span>
+                            {% else %}
+                                <span class="status-badge bg-danger">Nofaol</span>
+                            {% endif %}
+                            
+                            {% if user.is_superuser %}
+                                <div class="mt-1">
+                                    <small class="badge bg-warning text-dark">Super Admin</small>
+                                </div>
+                            {% elif user.is_staff %}
+                                <div class="mt-1">
+                                    <small class="badge bg-info">Admin</small>
+                                </div>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <small>{{ user.date_joined|date:"d.m.Y" }}</small>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="empty-state">
+            <i class="fas fa-users"></i>
+            <h5 class="mt-2">Hozircha foydalanuvchilar yo'q</h5>
+            <p class="mb-0">Birinchi foydalanuvchi qo'shish uchun "Yangi foydalanuvchi" tugmasini bosing</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Pastki navigatsiya -->
+<div class="bottom-nav d-md-none">
+    <a href="{% url 'dashboard' %}" class="nav-item active">
+        <i class="fas fa-home"></i>
+        <span>Bosh sahifa</span>
+    </a>
+    <a href="{% url 'user_list' %}" class="nav-item">
+        <i class="fas fa-users"></i>
+        <span>Foydalanuvchilar</span>
+    </a>
+    <a href="{% url 'reports' %}" class="nav-item">
+        <i class="fas fa-chart-bar"></i>
+        <span>Hisobotlar</span>
+    </a>
+    
+</div>
+
+<style>
+    :root {
+        --primary-color: #0d6efd;
+        --secondary-color: #6c757d;
+        --success-color: #198754;
+        --warning-color: #ffc107;
+        --danger-color: #dc3545;
+        --info-color: #0dcaf0;
+        --light-bg: #f8f9fa;
+        --card-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        --hover-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    }
+    
+    .main-content {
+        padding-bottom: 70px; /* Pastki navigatsiya uchun joy */
+    }
+    
+    .stat-card {
+        border-radius: 12px;
+        border: none;
+        box-shadow: var(--card-shadow);
+        margin-bottom: 15px;
+        transition: transform 0.2s;
+        border-left: 5px solid !important;
+    }
+    
+    .stat-card:hover {
+        transform: translateY(-3px);
+    }
+    
+    .card-icon {
+        width: 50px;
+        height: 50px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+    }
+    
+    .menu-card {
+        border-radius: 12px;
+        border: 1px solid #e9ecef;
+        margin-bottom: 15px;
+        transition: all 0.3s;
+        background: white;
+        text-decoration: none !important;
+        color: inherit;
+        display: block;
+    }
+    
+    .menu-card:hover {
+        box-shadow: var(--hover-shadow);
+        transform: translateY(-3px);
+        color: inherit;
+    }
+    
+    .menu-icon {
+        width: 60px;
+        height: 60px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.8rem;
+        margin: 0 auto 15px;
+    }
+    
+    .user-avatar {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background-color: var(--primary-color);
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 600;
+        font-size: 1.1rem;
+    }
+    
+    .status-badge {
+        font-size: 0.75rem;
+        padding: 0.25em 0.8em;
+        border-radius: 20px;
+        font-weight: 500;
+    }
+    
+    .section-title {
+        font-size: 1.1rem;
+        font-weight: 600;
+        margin-bottom: 15px;
+        color: #333;
+        display: flex;
+        align-items: center;
+    }
+    
+    .section-title i {
+        margin-right: 10px;
+        font-size: 1.2rem;
+    }
+    
+    .table-responsive {
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: var(--card-shadow);
+    }
+    
+    .table th {
+        background-color: var(--light-bg);
+        font-weight: 600;
+        color: #495057;
+        border-bottom: 2px solid #dee2e6;
+        font-size: 0.85rem;
+        padding: 12px 10px;
+    }
+    
+    .table td {
+        padding: 12px 10px;
+        vertical-align: middle;
+        font-size: 0.9rem;
+    }
+    
+    .table tr {
+        border-bottom: 1px solid #f0f0f0;
+    }
+    
+    .empty-state {
+        padding: 40px 20px;
+        text-align: center;
+        color: #6c757d;
+    }
+    
+    .empty-state i {
+        font-size: 3rem;
+        margin-bottom: 15px;
+        opacity: 0.5;
+    }
+    
+    .date-display {
+        background-color: white;
+        border-radius: 10px;
+        padding: 10px 15px;
+        font-size: 0.9rem;
+        color: #666;
+        box-shadow: var(--card-shadow);
+        display: inline-block;
+        margin-top: 10px;
+    }
+    
+    .quick-action-btn {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 12px;
+        border-radius: 10px;
+        background: white;
+        border: 1px solid #e9ecef;
+        font-weight: 500;
+        color: var(--primary-color);
+        margin-bottom: 10px;
+        transition: all 0.2s;
+        text-decoration: none;
+    }
+    
+    .quick-action-btn:hover {
+        background-color: var(--primary-color);
+        color: white;
+        text-decoration: none;
+    }
+    
+    .quick-action-btn i {
+        margin-right: 8px;
+        font-size: 1.1rem;
+    }
+    
+    .container-fluid {
+        padding-left: 15px;
+        padding-right: 15px;
+    }
+    
+    /* Mobil optimizatsiya */
+    @media (max-width: 576px) {
+        .stat-card .h3 {
+            font-size: 1.5rem;
+        }
+        
+        .menu-card h5 {
+            font-size: 1rem;
+        }
+        
+        .menu-card p {
+            font-size: 0.85rem;
+        }
+        
+        .table th, .table td {
+            padding: 8px 5px;
+            font-size: 0.8rem;
+        }
+        
+        .section-title {
+            font-size: 1rem;
+        }
+        
+        .navbar-brand {
+            font-size: 1.1rem;
+        }
+    }
+    
+    /* Yon menyu */
+    .bottom-nav {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        background: white;
+        box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
+        z-index: 1000;
+        display: flex;
+        justify-content: space-around;
+        padding: 10px 0;
+    }
+    
+    .nav-item {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        text-decoration: none;
+        color: #6c757d;
+        font-size: 0.75rem;
+        flex: 1;
+    }
+    
+    .nav-item.active {
+        color: var(--primary-color);
+    }
+    
+    .nav-item i {
+        font-size: 1.2rem;
+        margin-bottom: 4px;
+    }
+</style>
+
+<script>
+    // Vaqtni yangilash funksiyasi
+    function updateDateTime() {
+        const now = new Date();
+        
+        // Sana formatlash
+        const day = String(now.getDate()).padStart(2, '0');
+        const month = String(now.getMonth() + 1).padStart(2, '0');
+        const year = now.getFullYear();
+        
+        // Vaqt formatlash
+        const hours = String(now.getHours()).padStart(2, '0');
+        const minutes = String(now.getMinutes()).padStart(2, '0');
+        
+        const dateStr = `${day}.${month}.${year} ${hours}:${minutes}`;
+        
+        // Sana elementlarini yangilash
+        const dateElements = document.querySelectorAll('#currentDateMobile');
+        dateElements.forEach(el => {
+            if (el) {
+                el.textContent = dateStr;
+            }
+        });
+    }
+    
+    // Sahifa yuklanganda va har minutda yangilash
+    document.addEventListener('DOMContentLoaded', function() {
+        updateDateTime();
+        setInterval(updateDateTime, 60000); // Har minutda yangilash
+        
+        // Stat kartalariga bosilganda effekt
+        const statCards = document.querySelectorAll('.stat-card');
+        statCards.forEach(card => {
+            card.addEventListener('click', function() {
+                this.style.transform = 'scale(0.98)';
+                setTimeout(() => {
+                    this.style.transform = '';
+                }, 200);
+            });
+        });
+        
+        // Pastki navigatsiya faolligini tekshirish
+        const currentPath = window.location.pathname;
+        const navItems = document.querySelectorAll('.nav-item');
+        
+        navItems.forEach(item => {
+            const href = item.getAttribute('href');
+            if (href && currentPath.includes(href.replace('/', ''))) {
+                navItems.forEach(i => i.classList.remove('active'));
+                item.classList.add('active');
+            }
+        });
+        
+        // Sozlamalar tugmasi uchun alohida ishlov
+        const settingsBtn = document.querySelector('.nav-item[href="#"]');
+        if (settingsBtn) {
+            settingsBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+                alert('Sozlamalar sahifasi tez orada qoʻshiladi');
+            });
+        }
+    });
+</script>
+{% endblock %}
