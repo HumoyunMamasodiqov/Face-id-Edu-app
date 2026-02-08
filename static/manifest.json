@@ -1,21 +1,67 @@
 {
-  "name": "FaceEdu",
-  "short_name": "FaceEdu",
+  "name": "Sklat.uz — Do'kon boshqaruv tizimi",
+  "short_name": "Sklat.uz",
+  "description": "Sklat.uz — Ombor va do'konlarni boshqarish uchun eng qulay web-ilova. Tezkor, ishonchli va sodda interfeys.",
   "start_url": "/",
+  "scope": "/",
   "display": "standalone",
-  "background_color": "#0d1117",
-  "theme_color": "#0d1117",
   "orientation": "portrait",
+  "background_color": "#ffffff",
+  "theme_color": "#0078E8",
   "icons": [
     {
-      "src": "/static/icons/logo.png",
+      "src": "/static/img/sklatlogo.png",
+      "sizes": "72x72",
+      "type": "image/png"
+    },
+    {
+      "src": "/static/img/sklatlogo.png",
+      "sizes": "96x96",
+      "type": "image/png"
+    },
+    {
+      "src": "/static/img/sklatlogo.png",
+      "sizes": "128x128",
+      "type": "image/png"
+    },
+    {
+      "src": "/static/img/sklatlogo.png",
+      "sizes": "144x144",
+      "type": "image/png"
+    },
+    {
+      "src": "/static/img/sklatlogo.png",
+      "sizes": "152x152",
+      "type": "image/png"
+    },
+    {
+      "src": "/static/img/sklatlogo.png",
       "sizes": "192x192",
       "type": "image/png"
     },
     {
-      "src": "/static/icons/logo.png",
+      "src": "/static/img/sklatlogo.png",
+      "sizes": "384x384",
+      "type": "image/png"
+    },
+    {
+      "src": "/static/img/sklatlogo.png",
       "sizes": "512x512",
       "type": "image/png"
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "/static/img/screenshot1.png",
+      "sizes": "1080x1920",
+      "type": "image/png",
+      "label": "Bosh sahifa"
+    },
+    {
+      "src": "/static/img/screenshot2.png",
+      "sizes": "1080x1920",
+      "type": "image/png",
+      "label": "Mahsulotlar ro'yxati"
     }
   ]
 }

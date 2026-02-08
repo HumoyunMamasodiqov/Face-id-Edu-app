@@ -61,57 +61,7 @@
     </style>
 </head>
 <body>
-    <div class="login-card">
-        <div class="login-header">
-            <h3><i class="fas fa-fingerprint"></i> FaceEdu</h3>
-            <p class="mb-0">Ish vaqti kuzatuv tizimi</p>
-        </div>
-
-        <div class="login-body">
-            {% if messages %}
-                {% for message in messages %}
-                    <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
-                        {{ message }}
-                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                    </div>
-                {% endfor %}
-            {% endif %}
-
-            <form method="post">
-                {% csrf_token %}
-
-                <div class="mb-3">
-                    <label for="username" class="form-label">
-                        <i class="fas fa-user"></i> Login
-                    </label>
-                    <input type="text" class="form-control" id="username"
-                           name="username" required autofocus>
-                </div>
-
-                <div class="mb-4">
-                    <label for="password" class="form-label">
-                        <i class="fas fa-lock"></i> Parol
-                    </label>
-                    <input type="password" class="form-control" id="password"
-                           name="password" required>
-                </div>
-
-                <button type="submit" class="btn btn-login mb-3">
-                    <i class="fas fa-sign-in-alt"></i> TIZIMGA KIRISH
-                </button>
-
-                <div class="text-center">
-                    <small class="text-muted">
-                        v1.0 © 2024 FaceEdu
-                    </small>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <!-- Bootstrap JS -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
-
+   
     <!-- Service Worker -->
     <script>
       if ('serviceWorker' in navigator) {
