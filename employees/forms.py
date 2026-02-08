@@ -22,9 +22,6 @@ class UserCreateForm(UserCreationForm):
         label='Xodim bilan bog‘lash',
         empty_label="Xodim tanlanmagan"
     )
-    first_name = forms.CharField(max_length=30, required=True, label='Ism')
-    last_name = forms.CharField(max_length=30, required=True, label='Familiya')
-    email = forms.EmailField(required=True, label='Email')
     phone = forms.CharField(max_length=20, required=False, label='Telefon')
     
     class Meta:
@@ -44,18 +41,31 @@ class UserCreateForm(UserCreationForm):
         self.fields['password2'].help_text = "Yugoridagi parolni tasdiqlang"
     
     def save(self, commit=True):
+        """User va uning profilini bir vaqtda yaratish"""
+        # Avval user yaratish
         user = super().save(commit=False)
         user.email = self.cleaned_data['email']
         
         if commit:
             user.save()
+            
             # UserProfile yaratish
-            UserProfile.objects.create(
+            # get_or_create bilan profil borligini tekshirish
+            profile, created = UserProfile.objects.get_or_create(
                 user=user,
-                user_type=self.cleaned_data['user_type'],
-                employee=self.cleaned_data['employee'],
-                phone=self.cleaned_data['phone']
+                defaults={
+                    'user_type': self.cleaned_data.get('user_type', 'employee'),
+                    'employee': self.cleaned_data.get('employee'),
+                    'phone': self.cleaned_data.get('phone', '')
+                }
             )
+            
+            # Agar profil allaqachon mavjud bo'lsa, yangilash
+            if not created:
+                profile.user_type = self.cleaned_data.get('user_type', 'employee')
+                profile.employee = self.cleaned_data.get('employee')
+                profile.phone = self.cleaned_data.get('phone', '')
+                profile.save()
         
         return user
 
