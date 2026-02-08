@@ -1112,12 +1112,13 @@
             }
         });
     </script>
-
-<script>
-    if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register("{% static 'service-worker.js' %}");
-    }
-    </script>
+    <!-- Service Worker -->
+    <script>
+        if ('serviceWorker' in navigator) {
+          navigator.serviceWorker.register("{% static 'js/service-worker.js' %}");
+        }
+      </script>
+  
     
 
 </body>

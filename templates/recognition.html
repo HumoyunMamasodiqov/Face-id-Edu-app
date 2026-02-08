@@ -957,12 +957,23 @@
         });
         
     </script>
-    <script>
+       <!-- Service Worker -->
+       <script>
         if ('serviceWorker' in navigator) {
-          navigator.serviceWorker.register("{% static 'service-worker.js' %}");
+          navigator.serviceWorker.register("{% static 'js/service-worker.js' %}");
         }
-        </script>
-        
+      </script>
+  
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+
+
+
+
+
+
+
+
+
+
 </body>
 </html>

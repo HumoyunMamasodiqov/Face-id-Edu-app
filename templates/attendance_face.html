@@ -1,17 +1,21 @@
-<!-- templates/attendance_face.html -->
 <!DOCTYPE html>
 <html lang="uz">
-    {% load static %}
+{% load static %}
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ page_title }} - Face Recognition</title>
+    <title>{{ page_title }} - FaceEdu</title>
+
+    <!-- PWA -->
     <link rel="manifest" href="{% static 'manifest.json' %}">
-<meta name="theme-color" content="#0d6efd">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="theme-color" content="#0d6efd">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+
+    <!-- CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+
     <style>
         body { background: #f8f9fa; padding: 20px; }
         .video-container { position: relative; max-width: 640px; margin: 0 auto; background: black; border-radius: 10px; overflow: hidden; box-shadow: 0 5px 15px rgba(0,0,0,0.2); }
@@ -34,11 +38,8 @@
         .work-schedule { background: #f8f9fa; border-radius: 5px; padding: 8px; margin-top: 5px; font-size: 12px; }
         .work-day { color: #10b981; }
         .day-off { color: #ef4444; }
-
-
-
-     
     </style>
+
     <script src="https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/dist/face-api.min.js"></script>
 </head>
 <body>
@@ -69,7 +70,7 @@
                 </div>
             </div>
         </div>
-        
+
         <div class="row">
             <!-- LEFT COLUMN - Camera -->
             <div class="col-md-8">
@@ -82,13 +83,13 @@
                         <div id="status">
                             <span id="statusText">Kamerani yoqish uchun "Kamerani Yoqish" tugmasini bosing</span>
                         </div>
-                        
+
                         <!-- Video container -->
                         <div class="video-container mt-3">
                             <video id="video" autoplay muted playsinline></video>
                             <canvas id="overlay"></canvas>
                         </div>
-                        
+
                         <!-- Controls -->
                         <div class="text-center mt-3">
                             <button id="startCamera" class="btn btn-success btn-lg">
@@ -98,7 +99,7 @@
                                 <i class="fas fa-stop me-2"></i>To'xtatish
                             </button>
                         </div>
-                        
+
                         <!-- Manual attendance -->
                         <div class="card mt-4">
                             <div class="card-header bg-secondary text-white">
@@ -111,7 +112,7 @@
                                         <select id="manualSelect" class="form-select mb-3">
                                             <option value="">Xodimni tanlang</option>
                                             {% for emp in employees %}
-                                            <option value="{{ emp.id }}" 
+                                            <option value="{{ emp.id }}"
                                                     {% if emp.id in checked_in_today or emp.id in checked_out_today %}
                                                     disabled
                                                     {% endif %}>
@@ -148,7 +149,7 @@
                     </div>
                 </div>
             </div>
-            
+
             <!-- RIGHT COLUMN - Today's list -->
             <div class="col-md-4">
                 <div class="card mb-4">
@@ -210,7 +211,7 @@
                         </div>
                     </div>
                 </div>
-                
+
                 <!-- Recent activity log -->
                 <div class="card">
                     <div class="card-header bg-info text-white">
@@ -228,36 +229,34 @@
             </div>
         </div>
     </div>
-    
+
     <!-- Welcome Banner -->
     <div id="welcomeBanner" class="welcome-banner welcome-{% if attendance_type == 'in' %}checkin{% else %}checkout{% endif %}">
         <i class="fas fa-check-circle me-2"></i>
         <span id="welcomeMessage"></span>
     </div>
-    
+
     <!-- Audio -->
     <audio id="beepSound" src="{% if attendance_type == 'in' %}https://assets.mixkit.co/sfx/preview/mixkit-correct-answer-tone-2870.mp3{% else %}https://assets.mixkit.co/sfx/preview/mixkit-achievement-bell-600.mp3{% endif %}" preload="auto"></audio>
     <audio id="errorSound" src="https://assets.mixkit.co/sfx/preview/mixkit-wrong-answer-fail-notification-946.mp3" preload="auto"></audio>
-    
+
     <script>
-        // Ovoz chiqarish (Text-to-Speech)
-function speak(text) {
-    if (!('speechSynthesis' in window)) {
-        console.warn("Brauzer TTS qo‘llab-quvvatlamaydi");
-        return;
-    }
+        // ===== OVOZLI XABAR (TTS) =====
+        function speak(text) {
+            if (!('speechSynthesis' in window)) {
+                console.warn("Brauzer TTS qo‘llab-quvvatlamaydi");
+                return;
+            }
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.lang = 'uz-UZ';
+            utterance.rate = 0.95;
+            utterance.pitch = 1;
+            utterance.volume = 1;
+            window.speechSynthesis.cancel();
+            window.speechSynthesis.speak(utterance);
+        }
 
-    const utterance = new SpeechSynthesisUtterance(text);
-    utterance.lang = 'uz-UZ';   // O‘zbekcha
-    utterance.rate = 0.95;      // Tezlik
-    utterance.pitch = 1;        // Ohang
-    utterance.volume = 1;       // Ovozi
-
-    window.speechSynthesis.cancel(); // Oldingi ovozni to‘xtatish
-    window.speechSynthesis.speak(utterance);
-}
-
-        // ============ KONFIGURATSIYA ============
+        // ===== KONFIGURATSIYA =====
         const CONFIG = {
             MODEL_URL: 'https://cdn.jsdelivr.net/gh/justadudewhohacks/face-api.js@master/weights/',
             THRESHOLD: 0.45,
@@ -267,16 +266,16 @@ function speak(text) {
             MIN_CONFIDENCE: 0.5,
             ATTENDANCE_TYPE: '{{ attendance_type }}'  // 'in' yoki 'out'
         };
-        
-        // ============ O'ZGARUVCHILAR ============
+
+        // ===== O'ZGARUVCHILAR =====
         let faceMatcher = null;
         let recognitionActive = false;
         let detectionInterval = null;
         let lastSeen = {};
         let employeeDescriptors = [];
         let videoStream = null;
-        
-        // ============ DOM ELEMENTLARI ============
+
+        // ===== DOM ELEMENTLARI =====
         const video = document.getElementById('video');
         const canvas = document.getElementById('overlay');
         const ctx = canvas.getContext('2d');
@@ -285,25 +284,20 @@ function speak(text) {
         const statusText = document.getElementById('statusText');
         const manualSelect = document.getElementById('manualSelect');
         const manualBtn = document.getElementById('manualBtn');
-        
-        // ============ FUNKSIYALAR ============
-        
-        // Status yangilash
+
+        // ===== FUNKSIYALAR =====
+
         function updateStatus(text, type = 'info') {
             statusText.textContent = text;
             statusText.className = type;
             console.log(`[Status] ${text}`);
         }
-        
-        // Log qo'shish
+
         function addLog(message, type = 'info') {
             const logDiv = document.getElementById('detectionLog');
-            
-            // Agar bo'sh bo'lsa, o'chirish
             if (logDiv.children.length === 1 && logDiv.children[0].classList.contains('text-center')) {
                 logDiv.innerHTML = '';
             }
-            
             const logEntry = document.createElement('div');
             logEntry.className = `mb-2 p-2 border-start border-${getBorderColor(type)} border-3`;
             logEntry.innerHTML = `
@@ -313,13 +307,11 @@ function speak(text) {
                 </div>
             `;
             logDiv.prepend(logEntry);
-            
-            // Faqat oxirgi 8 ta xabarni saqlash
             while (logDiv.children.length > 8) {
                 logDiv.removeChild(logDiv.lastChild);
             }
         }
-        
+
         function getBorderColor(type) {
             switch(type) {
                 case 'success': return 'success';
@@ -328,12 +320,10 @@ function speak(text) {
                 default: return 'info';
             }
         }
-        
-        // Modellarni yuklash
+
         async function loadFaceModels() {
             updateStatus('Face modellar yuklanmoqda...', 'loading');
             addLog('Face API modellari yuklanmoqda...');
-            
             try {
                 await Promise.all([
                     faceapi.nets.tinyFaceDetector.loadFromUri(CONFIG.MODEL_URL),
@@ -341,7 +331,6 @@ function speak(text) {
                     faceapi.nets.faceRecognitionNet.loadFromUri(CONFIG.MODEL_URL),
                     faceapi.nets.ssdMobilenetv1.loadFromUri(CONFIG.MODEL_URL)
                 ]);
-                
                 updateStatus('✅ Modellar muvaffaqiyatli yuklandi', 'success');
                 addLog('Face API modellari yuklandi', 'success');
                 return true;
@@ -351,12 +340,10 @@ function speak(text) {
                 return false;
             }
         }
-        
-        // Xodim rasmlarini yuklash
+
         async function loadEmployeeDescriptors() {
             updateStatus('Xodim rasmlari yuklanmoqda...', 'loading');
-            
-            // Django'dan ma'lumotlarni olish
+
             const employees = [
                 {% for emp in employees %}
                 {
@@ -366,28 +353,28 @@ function speak(text) {
                 },
                 {% endfor %}
             ];
-            
+
             if (employees.length === 0) {
                 updateStatus('❌ Hech qanday xodim topilmadi', 'error');
                 return [];
             }
-            
+
             const labeledDescriptors = [];
             let loadedCount = 0;
-            
+
             for (const emp of employees) {
                 if (!emp.photo_url || emp.photo_url === "") {
                     addLog(`${emp.name}: Rasm yo'q`, 'warning');
                     continue;
                 }
-                
+
                 try {
                     const img = await faceapi.fetchImage(emp.photo_url);
                     const detections = await faceapi
                         .detectAllFaces(img, new faceapi.SsdMobilenetv1Options({ minConfidence: 0.5 }))
                         .withFaceLandmarks()
                         .withFaceDescriptors();
-                    
+
                     if (detections.length > 0) {
                         const descriptors = detections.map(d => d.descriptor);
                         labeledDescriptors.push(new faceapi.LabeledFaceDescriptors(emp.name, descriptors));
@@ -400,16 +387,15 @@ function speak(text) {
                     addLog(`${emp.name}: Rasm yuklanmadi`, 'error');
                 }
             }
-            
+
             updateStatus(`✅ ${loadedCount} ta xodimning rasmlari yuklandi`, 'success');
             return labeledDescriptors;
         }
-        
-        // Kamerani ishga tushirish
+
         async function startCamera() {
             updateStatus('Kamera ochilmoqda...', 'loading');
             addLog('Kamera ochilmoqda...');
-            
+
             try {
                 const constraints = {
                     video: {
@@ -419,172 +405,145 @@ function speak(text) {
                         frameRate: { ideal: 30 }
                     }
                 };
-                
+
                 videoStream = await navigator.mediaDevices.getUserMedia(constraints);
                 video.srcObject = videoStream;
-                
+
                 video.onloadedmetadata = () => {
                     canvas.width = video.videoWidth;
                     canvas.height = video.videoHeight;
-                    
+
                     updateStatus('✅ Kamera ochildi', 'success');
-                    
                     startBtn.disabled = true;
                     stopBtn.disabled = false;
-                    
                     startFaceRecognition();
                 };
-                
+
             } catch (error) {
                 updateStatus(`❌ Kamera xatosi: ${error.message}`, 'error');
                 addLog(`Kamera xatosi: ${error.message}`, 'error');
-                
                 if (error.name === 'NotAllowedError') {
                     alert('Iltimos, kameraga ruxsat bering!');
                 }
             }
         }
-        
-        // Face recognition boshlash
+
         async function startFaceRecognition() {
             if (recognitionActive) return;
-            
+
             updateStatus('Yuz aniqlash boshlandi...', 'loading');
             addLog('Yuz aniqlash tizimi ishga tushdi');
-            
-            // Modellarni yuklash
+
             const modelsLoaded = await loadFaceModels();
             if (!modelsLoaded) return;
-            
-            // Xodim descriptor'larini yuklash
+
             employeeDescriptors = await loadEmployeeDescriptors();
             if (employeeDescriptors.length === 0) {
                 updateStatus('❌ Hech qanday xodim rasmi yuklanmadi', 'error');
                 return;
             }
-            
-            // FaceMatcher yaratish
+
             faceMatcher = new faceapi.FaceMatcher(employeeDescriptors, CONFIG.THRESHOLD);
-            
-            // Aniqlashni boshlash
             recognitionActive = true;
             updateStatus('🔍 Yuzlarni aniqlash boshlandi...', 'success');
-            
             detectionInterval = setInterval(detectFaces, CONFIG.DETECTION_INTERVAL);
         }
-        
-        // Yuzlarni aniqlash
+
         async function detectFaces() {
             if (!recognitionActive || !videoStream) return;
-            
+
             try {
                 const detections = await faceapi
-                    .detectAllFaces(video, new faceapi.TinyFaceDetectorOptions({ 
+                    .detectAllFaces(video, new faceapi.TinyFaceDetectorOptions({
                         inputSize: 320,
-                        scoreThreshold: CONFIG.MIN_CONFIDENCE 
+                        scoreThreshold: CONFIG.MIN_CONFIDENCE
                     }))
                     .withFaceLandmarks()
                     .withFaceDescriptors();
-                
+
                 ctx.clearRect(0, 0, canvas.width, canvas.height);
-                
+
                 const resizedDetections = faceapi.resizeResults(detections, {
                     width: canvas.width,
                     height: canvas.height
                 });
-                
-                // Agar yuz aniqlanmasa
+
                 if (resizedDetections.length === 0) {
                     ctx.fillStyle = 'rgba(0,0,0,0.7)';
-                    ctx.fillRect(10, 10, 250, 50);
+                    ctx.fillRect(10, 10, 260, 60);
                     ctx.fillStyle = 'white';
                     ctx.font = '16px Arial';
                     ctx.fillText('📷 Kamera oldiga o\'ting', 20, 35);
                     ctx.fillText('Yuzingiz aniq ko\'rinsin', 20, 55);
                     return;
                 }
-                
-                // Har bir yuz uchun
+
                 resizedDetections.forEach(detection => {
                     const box = detection.detection.box;
                     const bestMatch = faceMatcher.findBestMatch(detection.descriptor);
-                    
-                    // Reng tanlash
-                    let color = '#ef4444'; // default - noma'lum
+
+                    let color = '#ef4444';
                     if (bestMatch.label !== 'unknown' && bestMatch.distance < CONFIG.THRESHOLD) {
                         color = CONFIG.ATTENDANCE_TYPE === 'in' ? '#22c55e' : '#dc2626';
                     }
-                    
-                    // To'rtburchak chizish
+
                     ctx.strokeStyle = color;
                     ctx.lineWidth = 3;
                     ctx.strokeRect(box.x, box.y, box.width, box.height);
-                    
-                    // Matn uchun fon
+
                     ctx.fillStyle = 'rgba(0,0,0,0.7)';
-                    const textWidth = ctx.measureText(bestMatch.label).width + 40;
+                    const textWidth = ctx.measureText(bestMatch.label).width + 60;
                     ctx.fillRect(box.x, box.y - 30, Math.max(textWidth, box.width), 30);
-                    
-                    // Ism va ishonch darajasi
+
                     ctx.fillStyle = 'white';
                     ctx.font = '14px Arial';
-                    const labelText = bestMatch.label !== 'unknown' 
+                    const labelText = bestMatch.label !== 'unknown'
                         ? `${bestMatch.label} (${bestMatch.distance.toFixed(2)})`
                         : 'Noma\'lum';
                     ctx.fillText(labelText, box.x + 5, box.y - 10);
-                    
-                    // Agar tanib olingan bo'lsa
+
                     if (bestMatch.label !== 'unknown' && bestMatch.distance < CONFIG.THRESHOLD) {
                         handleRecognition(bestMatch.label);
                     }
                 });
-                
+
             } catch (error) {
                 console.error('Detection error:', error);
                 addLog(`Aniqlash xatosi: ${error.message}`, 'error');
             }
         }
-        
-        // Tanib olingan yuzni qayd etish
+
         function handleRecognition(employeeName) {
             const now = Date.now();
-            
+
             if (!lastSeen[employeeName]) {
                 lastSeen[employeeName] = [];
             }
-            
-            // Eski yozuvlarni tozalash
+
             lastSeen[employeeName] = lastSeen[employeeName].filter(time => now - time < CONFIG.STABLE_TIME);
             lastSeen[employeeName].push(now);
-            
-            // Kerakli miqdordagi mos kelishlar
+
             if (lastSeen[employeeName].length >= CONFIG.REQUIRED_MATCHES) {
                 markAttendanceByName(employeeName);
                 lastSeen[employeeName] = [];
             }
         }
-        
-        // Ism orqali attendance belgilash
+
         function markAttendanceByName(employeeName) {
-            // Employee ID ni topish
             let employeeId = null;
-            
             for (let option of manualSelect.options) {
                 if (option.text.includes(employeeName)) {
                     employeeId = option.value;
                     break;
                 }
             }
-            
             if (!employeeId) {
                 addLog(`${employeeName}: ID topilmadi`, 'error');
                 return;
             }
-            
             markAttendance(employeeId, employeeName);
         }
-        
-        // Serverga attendance yuborish
+
         function markAttendance(employeeId, employeeName = null) {
             fetch('/mark-attendance/', {
                 method: 'POST',
@@ -592,7 +551,7 @@ function speak(text) {
                     'Content-Type': 'application/json',
                     'X-CSRFToken': getCookie('csrftoken')
                 },
-                body: JSON.stringify({ 
+                body: JSON.stringify({
                     employee_id: employeeId,
                     type: CONFIG.ATTENDANCE_TYPE
                 })
@@ -600,32 +559,25 @@ function speak(text) {
             .then(response => response.json())
             .then(data => {
                 if (data.status === 'success') {
-                    // Ovoz bilan aytish
-let voiceText;
-if (CONFIG.ATTENDANCE_TYPE === 'in') {
-    voiceText = `Xush kelibsiz ${data.employee_name}. `;
-} else {
-    voiceText = `Xayr, ${data.employee_name}. `;
-}
-speak(voiceText);
+                    let voiceText;
+                    if (CONFIG.ATTENDANCE_TYPE === 'in') {
+                        voiceText = `Xush kelibsiz ${data.employee_name}.`;
+                    } else {
+                        voiceText = `Xayr, ${data.employee_name}.`;
+                    }
+                    speak(voiceText);
 
-                    // Audio
                     document.getElementById('beepSound').play();
-                    
-                    // Jadvalni yangilash
                     updateAttendanceTable(data);
-                    
-                    // Welcome banner
-                    const message = CONFIG.ATTENDANCE_TYPE === 'in' 
-                        ? `👋 Xush kelibsiz, ${data.employee_name}!` 
+
+                    const message = CONFIG.ATTENDANCE_TYPE === 'in'
+                        ? `👋 Xush kelibsiz, ${data.employee_name}!`
                         : `👋 Xayr, ${data.employee_name}! Rahmat!`;
                     showWelcome(message);
-                    
-                    // Status
+
                     updateStatus(`${data.employee_name} ${data.type_display} qayd etildi`, 'success');
                     addLog(`${data.employee_name} ${data.type_display.toLowerCase()}i: ${data.time}`, 'success');
-                    
-                    // Option'ni disabled qilish
+
                     for (let option of manualSelect.options) {
                         if (option.value == employeeId) {
                             option.disabled = true;
@@ -633,7 +585,7 @@ speak(voiceText);
                             break;
                         }
                     }
-                    
+
                 } else {
                     document.getElementById('errorSound').play();
                     updateStatus(data.message, 'error');
@@ -646,13 +598,12 @@ speak(voiceText);
                 addLog(`Server xatosi: ${error.message}`, 'error');
             });
         }
-        
-        // Jadvalni yangilash
+
         function updateAttendanceTable(data) {
-            const timeBadge = CONFIG.ATTENDANCE_TYPE === 'in' 
+            const timeBadge = CONFIG.ATTENDANCE_TYPE === 'in'
                 ? `<span class="badge-checkin attendance-badge"><i class="fas fa-clock"></i> ${data.time}</span>`
                 : `<span class="badge-checkout attendance-badge"><i class="fas fa-clock"></i> ${data.time}</span>`;
-            
+
             const employeeCard = `
                 <div class="employee-card p-3 border rounded mb-2">
                     <div class="d-flex justify-content-between align-items-center">
@@ -666,57 +617,53 @@ speak(voiceText);
                     </div>
                 </div>
             `;
-            
+
             const attendanceList = document.getElementById('attendanceList');
             const attendanceCount = document.getElementById('attendanceCount');
-            
-            // Agar bo'sh bo'lsa
+
             if (attendanceList.children.length === 1 && attendanceList.children[0].classList.contains('text-center')) {
                 attendanceList.innerHTML = '';
             }
-            
+
             attendanceList.insertAdjacentHTML('afterbegin', employeeCard);
             attendanceCount.textContent = parseInt(attendanceCount.textContent) + 1;
         }
-        
-        // Kamera to'xtatish
+
         function stopCamera() {
             if (detectionInterval) {
                 clearInterval(detectionInterval);
                 detectionInterval = null;
             }
-            
+
             recognitionActive = false;
-            
+
             if (videoStream) {
                 videoStream.getTracks().forEach(track => track.stop());
                 videoStream = null;
             }
-            
+
             video.srcObject = null;
             ctx.clearRect(0, 0, canvas.width, canvas.height);
-            
+
             startBtn.disabled = false;
             stopBtn.disabled = true;
-            
+
             updateStatus('Kamera to\'xtatildi', 'info');
             addLog('Kamera to\'xtatildi');
         }
-        
-        // Welcome banner ko'rsatish
+
         function showWelcome(message) {
             const banner = document.getElementById('welcomeBanner');
             const messageEl = document.getElementById('welcomeMessage');
-            
+
             messageEl.textContent = message;
             banner.classList.add('show');
-            
+
             setTimeout(() => {
                 banner.classList.remove('show');
             }, 3000);
         }
-        
-        // CSRF token olish
+
         function getCookie(name) {
             let cookieValue = null;
             if (document.cookie && document.cookie !== '') {
@@ -731,10 +678,7 @@ speak(voiceText);
             }
             return cookieValue;
         }
-        
-        // ============ EVENT LISTENER'LAR ============
-        
-        // Kamerani yoqish
+
         startBtn.addEventListener('click', async () => {
             try {
                 await startCamera();
@@ -743,46 +687,44 @@ speak(voiceText);
                 updateStatus(`❌ Xato: ${error.message}`, 'error');
             }
         });
-        
-        // Kamerani to'xtatish
+
         stopBtn.addEventListener('click', stopCamera);
-        
-        // Qo'lda belgilash
+
         manualBtn.addEventListener('click', () => {
             const employeeId = manualSelect.value;
             const employeeName = manualSelect.options[manualSelect.selectedIndex].text.split(' (')[0];
-            
+
             if (!employeeId) {
                 alert('Xodimni tanlang!');
                 return;
             }
-            
+
             if (manualSelect.options[manualSelect.selectedIndex].disabled) {
                 alert('Bu xodim allaqachon belgilangan!');
                 return;
             }
-            
+
             markAttendance(employeeId, employeeName);
         });
-        
-        // Sahifa yuklanganda
+
         document.addEventListener('DOMContentLoaded', () => {
             addLog('Tizim tayyor. "Kamerani Yoqish" tugmasini bosing.');
             updateStatus('Tizim tayyor. Kamerani yoqing va yuzingizni ko\'rsating.', 'success');
         });
-        
-        // Sahifa yopilganda kamerani to'xtatish
+
         window.addEventListener('beforeunload', function() {
             stopCamera();
         });
-        
     </script>
+
+    <!-- Service Worker -->
     <script>
-        if ('serviceWorker' in navigator) {
-          navigator.serviceWorker.register("{% static 'service-worker.js' %}");
-        }
-        </script>
-        
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register("{% static 'js/service-worker.js' %}");
+      }
+    </script>
+
+    <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
