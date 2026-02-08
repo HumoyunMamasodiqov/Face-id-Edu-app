@@ -1,7 +1,7 @@
 {
-  "name": "Sklat.uz — Do'kon boshqaruv tizimi",
-  "short_name": "Sklat.uz",
-  "description": "Sklat.uz — Ombor va do'konlarni boshqarish uchun eng qulay web-ilova. Tezkor, ishonchli va sodda interfeys.",
+  "name": "FaceEdu.uz",
+  "short_name": "FaceEdu",
+  "description": "Face edu Xodimlar uchun",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
