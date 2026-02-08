@@ -373,8 +373,8 @@
     <!-- Sarlavha -->
     <div class="dashboard-header animate-in">
         <h1 class="header-title">
-            <i class="fas fa-tachometer-alt me-2"></i>
-            Davomat Dashboard
+            <img style="width: 50px; height: 50px;" src="{% static 'img/sklatlogo.png' %}" class="header-logo" alt="">
+            FaceEdu Dashboard
         </h1>
         <div class="date-display">
             <i class="far fa-calendar-alt me-2"></i>
@@ -382,7 +382,15 @@
         </div>
     </div>
 
-    <!-- Statistikalar -->
+    <!-- Statistikalar -->\\\\
+
+
+
+
+
+
+
+    
     <div class="stats-row animate-in" style="animation-delay: 0.1s;">
         <div class="stat-box">
             <div class="stat-icon users">
@@ -390,10 +398,7 @@
             </div>
             <div class="stat-number">{{ total_employees }}</div>
             <div class="stat-label">Jami Xodimlar</div>
-            <div class="stat-detail">
-                <i class="fas fa-circle text-success me-1"></i>
-                {{ active_count }} faol
-            </div>
+          
         </div>
 
         <div class="stat-box">
@@ -426,10 +431,7 @@
             </div>
             <div class="stat-number">{{ late_today }}</div>
             <div class="stat-label">Kech Kelgan</div>
-            <div class="stat-detail">
-                <i class="fas fa-exclamation-triangle text-danger me-1"></i>
-                Jarima: {{ total_penalty|floatformat:0 }} so'm
-            </div>
+           
         </div>
     </div>
 
@@ -490,7 +492,17 @@
         </p>
     </a>
     {% endif %}
-    
+    {% if user.is_superuser or user.is_staff or user.profile.user_type == 'admin' %}
+    <a href="{% url 'daily_report' %}" class="action-card">
+        <div class="action-icon" style="background-color: #26ff00; color: white;">
+            <i class="fas fa-chart-bar"></i>
+        </div>
+        <h3 class="action-title"> Davomat</h3>
+        <p class="action-desc">
+            Kunlik Haftali oylik  Davomat
+        </p>
+    </a>
+    {% endif %}
     <!-- Faqat admin uchun -->
     {% if user.is_superuser or user.is_staff or user.profile.user_type == 'admin' %}
     <a href="{% url 'admin_dashboard' %}" class="action-card">
@@ -503,6 +515,7 @@
         </p>
     </a>
     {% endif %}
+   
 </div>
     <!-- Davomat ma'lumotlari -->
     <div class="attendance-sections animate-in" style="animation-delay: 0.3s;">
