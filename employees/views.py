@@ -71,7 +71,7 @@ def employee_only_required(function=None):
 def login_view(request):
     """Login sahifasi"""
     if request.user.is_authenticated:
-        return redirect('dashboard')
+        return redirect('home')
     
     if request.method == 'POST':
         form = AuthenticationForm(data=request.POST)
@@ -79,7 +79,7 @@ def login_view(request):
             user = form.get_user()
             login(request, user)
             messages.success(request, f'Xush kelibsiz, {user.username}!')
-            return redirect('dashboard')
+            return redirect('home')
         else:
             messages.error(request, 'Login yoki parol notoʻgʻri!')
     else:
