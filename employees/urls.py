@@ -47,3 +47,15 @@ urlpatterns = [
     path('api/employee/<int:employee_id>/schedule/', views.get_employee_schedule, name='get_employee_schedule'),
     path('api/today-attendance/', views.get_today_attendance, name='get_today_attendance'),
 ]
+# urls.py
+from django.views.generic import TemplateView
+
+urlpatterns += [
+    path(
+        'service-worker.js',
+        TemplateView.as_view(
+            template_name='service-worker.js',
+            content_type='application/javascript'
+        ),
+    ),
+]
